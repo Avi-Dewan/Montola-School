@@ -1,0 +1,70 @@
+# ---- IntelliJ IDEA ----
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# User-specific files
+*.swp
+*.swo
+*~
+.DS_Store
+
+# ---- Gradle ----
+.gradle/
+build/
+out/
+!gradle-wrapper.jar
+
+# Local Gradle properties
+gradle-app.setting
+gradle-app.properties
+gradle.properties
+**/build/
+
+# ---- Logs ----
+*.log
+*.log.*
+hs_err_pid*
+
+# ---- OS Files ----
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# ---- JetBrains Patch ----
+# IntelliJ IDEA sometimes saves special settings files
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/**/usage.statistics.xml
+.idea/**/dictionaries
+.idea/**/shelf/
+
+# Caches
+.idea/**/dataSources/
+.idea/**/dataSources.ids
+.idea/**/dataSources.local.xml
+.idea/**/sqlDataSources.xml
+.idea/**/dynamic.xml
+.idea/**/uiDesigner.xml
+.idea/**/dbnavigator.xml
+.idea/caches/
+.idea/sonarlint/
+
+# ---- JVM specific ----
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+*.zip
+*.tar.gz
+*.rar
+
+# ---- Kotlin/Java compile outputs ----
+*.kotlin_module
+*.class
+
+# ---- Environment configs ----
+.env
+.env.*
