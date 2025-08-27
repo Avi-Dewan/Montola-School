@@ -1,4 +1,4 @@
-package com.montola.school.common;
+package com.montola.school.common.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;

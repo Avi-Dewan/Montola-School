@@ -1,7 +1,7 @@
 package com.montola.school.auth.model;
 
 import com.montola.school.auth.enums.Role;
-import com.montola.school.common.Persistent;
+import com.montola.school.common.model.Persistent;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

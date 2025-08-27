@@ -1,0 +1,48 @@
+package com.montola.school.auth.service;
+
+import com.montola.school.auth.dto.UserRegisterRequest;
+import com.montola.school.auth.enums.Role;
+import com.montola.school.auth.mapper.UserMapper;
+import com.montola.school.auth.model.User;
+import com.montola.school.auth.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import java.util.Optional;
+import java.util.Set;
+
+/**
+ * @author avidewan
+ * @date 8/27/25
+ */
+@Service
+@RequiredArgsConstructor
+public class UserServiceImpl implements UserService {
+
+    private final UserRepository userRepository;
+
+    private final UserMapper userMapper;
+
+    private final PasswordEncoder passwordEncoder;
+
+    @Override
+    public User createUser(UserRegisterRequest request) {
+        User user = userMapper.toEntity(request);
+
+        user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+
+        return userRepository.save(user);
+    }
+
+    @Override
+    public Optional<User> findByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
+
+    @Override
+    public boolean emailExists(String email) {
+        return userRepository.existsByEmail(email);
+    }
+}
+
