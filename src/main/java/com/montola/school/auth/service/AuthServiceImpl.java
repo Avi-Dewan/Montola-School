@@ -4,10 +4,15 @@ import com.montola.school.auth.dto.LoginRequest;
 import com.montola.school.auth.dto.AuthResponse;
 import com.montola.school.auth.model.User;
 import com.montola.school.auth.repository.UserRepository;
+import com.montola.school.common.exception.InvalidCredentialsException;
+import com.montola.school.common.exception.UserNotFoundException;
 import com.montola.school.common.security.JwtService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.*;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -25,12 +30,19 @@ public class AuthServiceImpl implements AuthService {
     private final JwtService jwtService;
 
     public AuthResponse login(LoginRequest request) {
-        Authentication auth = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.email(), request.password())
-        );
 
         User user = userRepository.findByEmail(request.email())
-                .orElseThrow(() -> new BadCredentialsException("Invalid credentials"));
+                .orElseThrow(UserNotFoundException::new);
+
+        try {
+            Authentication auth = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.email(), request.password())
+            );
+
+        } catch (BadCredentialsException ex) {
+            throw new InvalidCredentialsException();
+
+        }
 
         String token = jwtService.generateToken(
                 user.getEmail(),

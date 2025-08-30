@@ -40,13 +40,7 @@ public class GlobalExceptionHandler {
 
         String message = messageSource.getMessage("validation.failed", null, locale);
 
-        ErrorResponse response = new ErrorResponse(
-                HttpStatus.BAD_REQUEST.value(),
-                message,
-                LocalDateTime.now(),
-                fieldErrors
-        );
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        return buildResponse(HttpStatus.BAD_REQUEST, message, fieldErrors);
     }
 
     // Handle ConstraintViolationException (e.g., path variables, request params)
@@ -62,13 +56,7 @@ public class GlobalExceptionHandler {
 
         String message = messageSource.getMessage("validation.constraint", null, locale);
 
-        ErrorResponse response = new ErrorResponse(
-                HttpStatus.BAD_REQUEST.value(),
-                message,
-                LocalDateTime.now(),
-                fieldErrors
-        );
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        return buildResponse(HttpStatus.BAD_REQUEST, message, fieldErrors);
     }
 
     // Handle IllegalArgumentException
@@ -78,46 +66,54 @@ public class GlobalExceptionHandler {
 
         String message = messageSource.getMessage("error.illegal.argument", null, locale);
 
-        ErrorResponse response = new ErrorResponse(
-                HttpStatus.BAD_REQUEST.value(),
-                message,
-                LocalDateTime.now(),
-                null
-        );
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        return buildResponse(HttpStatus.BAD_REQUEST, message, null);
     }
+
+    // Authentication & Authorization
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ErrorResponse> handleAuthentication(AuthenticationException ex, Locale locale) {
+        String message = messageSource.getMessage(ex.getMessageKey(), null, locale);
+
+        return buildResponse(HttpStatus.UNAUTHORIZED, message, null);
+    }
+
+    @ExceptionHandler(AccessDeniedCustomException.class)
+    public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedCustomException ex, Locale locale) {
+        String message = messageSource.getMessage(ex.getMessage(), null, locale);
+
+        return buildResponse(HttpStatus.FORBIDDEN, message, null);
+    }
+
 
     // Handle login failures
     @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<ErrorResponse> handleBadCredentials(
-            BadCredentialsException ex, Locale locale) {
+    public ResponseEntity<ErrorResponse> handleBadCredentials(BadCredentialsException ex, Locale locale) {
 
         String message = messageSource.getMessage("auth.invalid.credentials", null, locale);
 
-        ErrorResponse response = new ErrorResponse(
-                HttpStatus.UNAUTHORIZED.value(),
-                message,
-                LocalDateTime.now(),
-                null
-        );
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+        return buildResponse(HttpStatus.UNAUTHORIZED, message, null);
     }
 
     // Handle all other exceptions (fallback)
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleAll(Exception ex, Locale locale) {
 
-        log.info("Error: {}", ex.getMessage());
+        log.info("Fallback Error: {}", ex.getMessage());
 
         String message = messageSource.getMessage("error.unexpected", null, locale);
 
-        ErrorResponse response = new ErrorResponse(
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, message, null);
+    }
+
+    private ResponseEntity<ErrorResponse> buildResponse(HttpStatus status,
+                                                        String message,
+                                                        Map<String, String> fieldErrors) {
+
+        ErrorResponse response = new ErrorResponse(status.value(),
                 message,
                 LocalDateTime.now(),
-                null
-        );
+                fieldErrors);
 
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        return ResponseEntity.status(status).body(response);
     }
 }

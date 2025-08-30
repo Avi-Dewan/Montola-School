@@ -1,5 +1,8 @@
 package com.montola.school.common.security;
 
+import com.montola.school.common.exception.TokenExpiredException;
+import com.montola.school.common.exception.TokenMissingException;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.*;
@@ -32,33 +35,30 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String authHeader = request.getHeader("Authorization");
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            chain.doFilter(request, response);
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
 
-            return;
-        }
+            String token = authHeader.substring(7);
+            String email;
 
-        String token = authHeader.substring(7);
-        String email;
+            try {
+                email = jwtService.extractSubject(token);
 
-        try {
-            email = jwtService.extractSubject(token);
+                if (!jwtService.isValid(token, email)) {
+                    throw new TokenExpiredException();
+                }
 
-        } catch (Exception e) {
-            chain.doFilter(request, response);
+                if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                    UserDetails user = userDetailsService.loadUserByUsername(email);
 
-            return;
-        }
+                    var authToken = new UsernamePasswordAuthenticationToken(
+                            user, null, user.getAuthorities());
 
-        if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails user = userDetailsService.loadUserByUsername(email);
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
 
-            if (jwtService.isValid(token, user.getUsername())) {
-                var authToken = new UsernamePasswordAuthenticationToken(
-                        user, null, user.getAuthorities());
-
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+            } catch (JwtException e) {
+                throw new TokenExpiredException();
             }
         }
 
