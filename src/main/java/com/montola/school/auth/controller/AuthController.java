@@ -21,7 +21,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
-@Tag(name = "Authentication", description = "Endpoints for user registration and info")
+@Tag(name = "Authentication", description = "Endpoints for login and registration")
 public class AuthController {
 
     private final UserService userService;
@@ -43,21 +43,5 @@ public class AuthController {
         User user = userService.createUser(request);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(userMapper.toResponse(user));
-    }
-
-    @Operation(summary = "Get user info by email")
-    @GetMapping("/user")
-    public ResponseEntity<UserResponse> getUser(@RequestParam String email) {
-        Optional<User> userOpt = userService.findByEmail(email);
-
-        return userOpt
-                .map(user -> ResponseEntity.ok(userMapper.toResponse(user)))
-                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
-    }
-
-    @Operation(summary = "Check if email exists")
-    @GetMapping("/exists")
-    public ResponseEntity<Boolean> emailExists(@RequestParam String email) {
-        return ResponseEntity.ok(userService.emailExists(email));
     }
 }

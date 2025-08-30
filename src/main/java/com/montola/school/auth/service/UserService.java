@@ -4,6 +4,7 @@ import com.montola.school.auth.dto.UserRegisterRequest;
 import com.montola.school.auth.enums.Role;
 import com.montola.school.auth.model.User;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -17,5 +18,11 @@ public interface UserService {
 
     Optional<User> findByEmail(String email);
 
+    Optional<User> findById(Long id);
+
     boolean emailExists(String email);
+
+    List<User> findAllByRolesContaining(Role role);
+
+    List<User> findAll();
 }

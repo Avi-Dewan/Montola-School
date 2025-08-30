@@ -1,7 +1,6 @@
 package com.montola.school.common.security;
 
 import com.montola.school.common.exception.TokenExpiredException;
-import com.montola.school.common.exception.TokenMissingException;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
