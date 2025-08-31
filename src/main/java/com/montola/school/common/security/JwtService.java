@@ -8,6 +8,7 @@ import java.security.Key;
 import java.time.Instant;
 import java.util.Date;
 import java.util.Map;
+import java.util.function.Function;
 
 /**
  * @author avidewan
@@ -39,6 +40,19 @@ public class JwtService {
     public String extractSubject(String token) {
         return parse(token).getBody().getSubject();
     }
+
+    public <T> T extractClaim(String token, Function<Claims, T> resolver) {
+        return resolver.apply(parse(token).getBody());
+    }
+
+    public Long extractUserId(String token) {
+        return extractClaim(token, claims -> claims.get("id", Long.class));
+    }
+
+    public String[] extractRoles(String token) {
+        return extractClaim(token, claims -> claims.get("roles", String[].class));
+    }
+
 
     public boolean isValid(String token, String subject) {
         try {
