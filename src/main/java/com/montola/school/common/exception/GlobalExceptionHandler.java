@@ -70,6 +70,15 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.BAD_REQUEST, message, null);
     }
 
+    // Handle unactivated users
+    @ExceptionHandler(UserNotActivatedException.class)
+    public ResponseEntity<ErrorResponse> handleUserNotActivated(UserNotActivatedException ex, Locale locale) {
+        String message = messageSource.getMessage(ex.getMessage(), null, locale);
+
+        return buildResponse(HttpStatus.FORBIDDEN, message, null);
+    }
+
+
     // Authentication & Authorization
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ErrorResponse> handleAuthentication(AuthenticationException ex, Locale locale) {

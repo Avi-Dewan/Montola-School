@@ -1,9 +1,6 @@
 package com.montola.school.auth.controller;
 
-import com.montola.school.auth.dto.AuthResponse;
-import com.montola.school.auth.dto.LoginRequest;
-import com.montola.school.auth.dto.UserRegisterRequest;
-import com.montola.school.auth.dto.UserResponse;
+import com.montola.school.auth.dto.*;
 import com.montola.school.auth.mapper.UserMapper;
 import com.montola.school.auth.model.User;
 import com.montola.school.auth.service.AuthService;
@@ -43,5 +40,13 @@ public class AuthController {
         User user = userService.createUser(request);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(userMapper.toResponse(user));
+    }
+
+    @Operation(summary = "Activate a registered user")
+    @PostMapping("/activate")
+    public ResponseEntity<String> activateUser(@Valid @RequestBody ActivationRequest request) {
+        userService.activateUser(request.getEmail(), request.getToken());
+
+        return ResponseEntity.ok("Account activated successfully");
     }
 }

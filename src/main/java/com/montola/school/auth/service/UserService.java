@@ -16,6 +16,8 @@ public interface UserService {
 
     User createUser(UserRegisterRequest request);
 
+    void activateUser(String email, String token);
+
     Optional<User> findByEmail(String email);
 
     Optional<User> findById(Long id);

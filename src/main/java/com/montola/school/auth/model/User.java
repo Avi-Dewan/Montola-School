@@ -35,6 +35,10 @@ public class User extends Persistent {
     @NotBlank
     private String passwordHash;
 
+    private String phone;
+
+    private Boolean isActivated = false;
+
     @ElementCollection(fetch = FetchType.EAGER)
     @Enumerated(EnumType.STRING)
     @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))

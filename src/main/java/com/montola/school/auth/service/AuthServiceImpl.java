@@ -5,6 +5,7 @@ import com.montola.school.auth.dto.AuthResponse;
 import com.montola.school.auth.model.User;
 import com.montola.school.auth.repository.UserRepository;
 import com.montola.school.common.exception.InvalidCredentialsException;
+import com.montola.school.common.exception.UserNotActivatedException;
 import com.montola.school.common.exception.UserNotFoundException;
 import com.montola.school.common.security.JwtService;
 import lombok.RequiredArgsConstructor;
@@ -41,6 +42,10 @@ public class AuthServiceImpl implements AuthService {
         } catch (BadCredentialsException ex) {
             throw new InvalidCredentialsException();
 
+        }
+
+        if (!user.getIsActivated()) {
+            throw new UserNotActivatedException();
         }
 
         String token = jwtService.generateToken(
