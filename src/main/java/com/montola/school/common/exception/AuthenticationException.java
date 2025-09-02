@@ -1,8 +1,11 @@
 package com.montola.school.common.exception;
 
-
 import lombok.Getter;
 
+/**
+ * @author avidewan
+ * @date 8/27/25
+ */
 @Getter
 public class AuthenticationException extends RuntimeException {
 

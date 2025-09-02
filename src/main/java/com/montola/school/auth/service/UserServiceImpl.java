@@ -7,6 +7,7 @@ import com.montola.school.auth.model.ActivationToken;
 import com.montola.school.auth.model.User;
 import com.montola.school.auth.repository.ActivationTokenRepository;
 import com.montola.school.auth.repository.UserRepository;
+import com.montola.school.common.exception.RegistrationTokenExpiredException;
 import com.montola.school.common.exception.ResourceAlreadyExistsException;
 import com.montola.school.common.exception.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +17,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -65,7 +65,7 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(UserNotFoundException::new);
 
         if (activation.getExpiry().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("Activation token expired");
+            throw new RegistrationTokenExpiredException();
         }
 
         User user = activation.getUser();
@@ -74,6 +74,29 @@ public class UserServiceImpl implements UserService {
 
         activationTokenRepository.deleteByUserEmail(email);
     }
+
+    @Override
+    public void resendActivationToken(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(UserNotFoundException::new);
+
+        if (user.getIsActivated()) {
+            throw new ResourceAlreadyExistsException("user.already.activated");
+        }
+
+        activationTokenRepository.deleteByUserEmail(email);
+
+        ActivationToken token = ActivationToken.builder()
+                .user(user)
+                .token(UUID.randomUUID().toString())
+                .expiry(LocalDateTime.now().plusMinutes(15))
+                .build();
+
+        activationTokenRepository.save(token);
+
+        System.out.println("Resent activation token for " + user.getEmail() + ": " + token.getToken());
+    }
+
 
     @Override
     public Optional<User> findByEmail(String email) {

@@ -18,6 +18,8 @@ public interface UserService {
 
     void activateUser(String email, String token);
 
+    void resendActivationToken(String email);
+
     Optional<User> findByEmail(String email);
 
     Optional<User> findById(Long id);

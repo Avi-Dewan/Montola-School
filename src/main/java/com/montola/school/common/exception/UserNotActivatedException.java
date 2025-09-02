@@ -6,6 +6,6 @@ package com.montola.school.common.exception;
  */
 public class UserNotActivatedException extends RuntimeException {
     public UserNotActivatedException() {
-        super("auth.user.not.activated");
+        super("user.not.activated");
     }
 }

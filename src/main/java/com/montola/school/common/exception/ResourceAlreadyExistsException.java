@@ -15,5 +15,4 @@ public class ResourceAlreadyExistsException extends RuntimeException {
         super(messageKey);
         this.messageKey = messageKey;
     }
-
 }

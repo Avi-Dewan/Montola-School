@@ -78,6 +78,13 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.FORBIDDEN, message, null);
     }
 
+    // Verification Token Expired
+    @ExceptionHandler(RegistrationTokenExpiredException.class)
+    public ResponseEntity<ErrorResponse> handleRegistrationTokenExpired(RegistrationTokenExpiredException ex, Locale locale) {
+        String message = messageSource.getMessage(ex.getMessage(), null, locale);
+
+        return buildResponse(HttpStatus.BAD_REQUEST, message, null);
+    }
 
     // Authentication & Authorization
     @ExceptionHandler(AuthenticationException.class)
