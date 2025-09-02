@@ -1,16 +1,19 @@
 package com.montola.school.common.security;
 
+import com.montola.school.common.exception.ResourceNotFoundException;
 import com.montola.school.common.exception.TokenExpiredException;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.*;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -21,10 +24,12 @@ import java.io.IOException;
  */
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
+    private final SecurityProperties securityProperties;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -32,33 +37,48 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain chain)
             throws ServletException, IOException {
 
+        String path = request.getRequestURI();
+
+        AntPathMatcher pathMatcher = new AntPathMatcher();
+
+        boolean isWhitelisted = securityProperties.getWhiteList()
+                .stream()
+                .anyMatch(pattern -> pathMatcher.match(pattern, path));
+
+        if (isWhitelisted) {
+            chain.doFilter(request, response);
+
+            return;
+        }
+
         String authHeader = request.getHeader("Authorization");
 
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+        if(authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new ResourceNotFoundException("auth.token.missing");
+        }
 
-            String token = authHeader.substring(7);
-            String email;
+        String token = authHeader.substring(7);
+        String email;
 
-            try {
-                email = jwtService.extractSubject(token);
+        try {
+            email = jwtService.extractSubject(token);
 
-                if (!jwtService.isValid(token, email)) {
-                    throw new TokenExpiredException();
-                }
-
-                if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                    UserDetails user = userDetailsService.loadUserByUsername(email);
-
-                    var authToken = new UsernamePasswordAuthenticationToken(
-                            user, null, user.getAuthorities());
-
-                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(authToken);
-                }
-
-            } catch (JwtException e) {
+            if (!jwtService.isValid(token, email)) {
                 throw new TokenExpiredException();
             }
+
+            if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                UserDetails user = userDetailsService.loadUserByUsername(email);
+
+                var authToken = new UsernamePasswordAuthenticationToken(
+                        user, null, user.getAuthorities());
+
+                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authToken);
+            }
+
+        } catch (JwtException e) {
+            throw new TokenExpiredException();
         }
 
         chain.doFilter(request, response);

@@ -23,3 +23,15 @@ spring:
     jwt:
       secret: ${SECURITY_JWT_SECRET}
       expiration-minutes: ${SECURITY_JWT_EXPIRATION_MINUTES:60}
+
+    white-list:
+      - "/api/auth/login"
+      - "/api/auth/register"
+      - "/api/auth/activate"
+      - "/api/auth/resend-activation"
+      - "/v3/api-docs/**"
+      - "/swagger-ui/**"
+      - "/swagger-ui.html"
+    cors-allowed-origins:
+      - "http://localhost:3000"
+      - "https://yourfrontend.com"
