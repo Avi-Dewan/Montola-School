@@ -50,4 +50,12 @@ public class AuthController {
 
         return ResponseEntity.ok("Account activated successfully");
     }
+
+    @Operation(summary = "Resend activation token")
+    @PostMapping("/resend-activation")
+    public ResponseEntity<String> resendActivation(@RequestBody ResendActivationRequest request) {
+        userService.resendActivationToken(request.getEmail());
+
+        return ResponseEntity.ok("A new activation link has been sent!");
+    }
 }

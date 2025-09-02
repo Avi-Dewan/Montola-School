@@ -5,11 +5,11 @@ import lombok.Data;
 
 import java.time.LocalDateTime;
 import java.util.Set;
+
 /**
  * @author avidewan
  * @date 8/27/25
  */
-
 @Data
 public class UserResponse {
 

@@ -127,6 +127,14 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.CONFLICT, message, null);
     }
 
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleResourceExists(ResourceNotFoundException ex, Locale locale) {
+
+        String message = messageSource.getMessage(ex.getMessageKey(), null, locale);
+
+        return buildResponse(HttpStatus.CONFLICT, message, null);
+    }
+
     // Handle all other exceptions (fallback)
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleAll(Exception ex, Locale locale) {

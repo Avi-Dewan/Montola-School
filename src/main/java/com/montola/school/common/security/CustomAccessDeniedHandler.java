@@ -20,7 +20,6 @@ import java.util.Map;
  * @author avidewan
  * @date 8/30/25
  */
-
 @Component
 @RequiredArgsConstructor
 public class CustomAccessDeniedHandler implements AccessDeniedHandler {

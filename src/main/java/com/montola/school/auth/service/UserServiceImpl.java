@@ -9,10 +9,12 @@ import com.montola.school.auth.repository.ActivationTokenRepository;
 import com.montola.school.auth.repository.UserRepository;
 import com.montola.school.common.exception.RegistrationTokenExpiredException;
 import com.montola.school.common.exception.ResourceAlreadyExistsException;
+import com.montola.school.common.exception.ResourceNotFoundException;
 import com.montola.school.common.exception.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -25,6 +27,7 @@ import java.util.UUID;
  */
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
@@ -35,6 +38,7 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
 
     @Override
+    @Transactional
     public User createUser(UserRegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new ResourceAlreadyExistsException("user.already.exists");
@@ -59,10 +63,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void activateUser(String email, String token) {
         ActivationToken activation = activationTokenRepository
                 .findByUserEmailAndToken(email, token)
-                .orElseThrow(UserNotFoundException::new);
+                .orElseThrow(() -> new ResourceNotFoundException("registration.token.notfound"));
 
         if (activation.getExpiry().isBefore(LocalDateTime.now())) {
             throw new RegistrationTokenExpiredException();
@@ -76,6 +81,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void resendActivationToken(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(UserNotFoundException::new);
