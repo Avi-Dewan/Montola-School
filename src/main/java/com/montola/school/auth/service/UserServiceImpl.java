@@ -74,6 +74,11 @@ public class UserServiceImpl implements UserService {
         }
 
         User user = activation.getUser();
+
+        if (user.getIsActivated()) {
+            throw new ResourceAlreadyExistsException("user.already.activated");
+        }
+
         user.setIsActivated(true);
         userRepository.save(user);
 
