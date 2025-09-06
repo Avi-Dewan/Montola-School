@@ -11,6 +11,7 @@ import com.montola.school.common.exception.RegistrationTokenExpiredException;
 import com.montola.school.common.exception.ResourceAlreadyExistsException;
 import com.montola.school.common.exception.ResourceNotFoundException;
 import com.montola.school.common.exception.UserNotFoundException;
+import com.montola.school.common.service.BusinessEmailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -37,6 +38,8 @@ public class UserServiceImpl implements UserService {
 
     private final PasswordEncoder passwordEncoder;
 
+    private final BusinessEmailService  businessEmailService;
+
     @Override
     @Transactional
     public User createUser(UserRegisterRequest request) {
@@ -57,7 +60,7 @@ public class UserServiceImpl implements UserService {
 
         activationTokenRepository.save(token);
 
-        System.out.println("Activation token for " + saved.getEmail() + ": " + token.getToken());
+        businessEmailService.sendActivationEmail(user.getEmail(), token.getToken());
 
         return saved;
     }
@@ -67,7 +70,16 @@ public class UserServiceImpl implements UserService {
     public void activateUser(String email, String token) {
         ActivationToken activation = activationTokenRepository
                 .findByUserEmailAndToken(email, token)
-                .orElseThrow(() -> new ResourceNotFoundException("registration.token.notfound"));
+                .orElseThrow(() -> {
+                    User user = userRepository.findByEmail(email)
+                            .orElseThrow(() -> new ResourceNotFoundException("registration.token.notfound"));
+
+                    if (user.getIsActivated()) {
+                        throw new ResourceAlreadyExistsException("user.already.activated");
+                    }
+
+                    return new ResourceNotFoundException("registration.token.notfound");
+                });
 
         if (activation.getExpiry().isBefore(LocalDateTime.now())) {
             throw new RegistrationTokenExpiredException();
@@ -84,6 +96,7 @@ public class UserServiceImpl implements UserService {
 
         activationTokenRepository.deleteByUserEmail(email);
     }
+
 
     @Override
     @Transactional

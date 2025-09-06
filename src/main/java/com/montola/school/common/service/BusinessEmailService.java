@@ -1,22 +1,28 @@
 package com.montola.school.common.service;
 
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.mail.MailException;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 /**
  * @author avidewan
  * @date 9/5/25
  */
-
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class BusinessEmailService {
 
-    private final MailSender mailSender;
+    private final JavaMailSender mailSender;
 
     public boolean sendActivationEmail(String to, String token) {
         String subject = "✅ Activate Your Account - Montola School";
-        String activationLink = "http://localhost:8080/api/auth/activate?token=" + token;
+        String activationLink = "http://localhost:3000/auth/activate?email=" + to + "&token=" + token;
 
         String html = """
             <div style="font-family:Arial, sans-serif; background-color:#f4fff4; padding:20px; border-radius:10px;">
@@ -30,7 +36,7 @@ public class BusinessEmailService {
             </div>
             """.formatted(activationLink);
 
-        return mailSender.sendEmail(to, subject, html);
+        return sendEmail(to, subject, html);
     }
 
     public boolean sendPasswordResetEmail(String to, String token) {
@@ -48,7 +54,7 @@ public class BusinessEmailService {
             </div>
             """.formatted(resetLink);
 
-        return mailSender.sendEmail(to, subject, html);
+        return sendEmail(to, subject, html);
     }
 
     public boolean sendPurchaseNotification(String to, String courseName, String packageName) {
@@ -68,6 +74,28 @@ public class BusinessEmailService {
             </div>
             """.formatted(courseName, packageName);
 
-        return mailSender.sendEmail(to, subject, html);
+        return sendEmail(to, subject, html);
+    }
+
+    private boolean sendEmail(String to,
+                              String subject,
+                              String htmlContent) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, "utf-8");
+
+            helper.setTo(to);
+            helper.setSubject(subject);
+            helper.setText(htmlContent, true);
+
+            mailSender.send(message);
+
+            return true;
+
+        } catch (MailException | MessagingException ex) {
+            log.error("Failed to send email to {}. Reason: {}", to, ex.getMessage(), ex);
+
+            return false;
+        }
     }
 }
