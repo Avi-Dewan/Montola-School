@@ -5,22 +5,17 @@ import com.montola.school.auth.enums.Role;
 import com.montola.school.auth.mapper.UserMapper;
 import com.montola.school.auth.model.ActivationToken;
 import com.montola.school.auth.model.User;
-import com.montola.school.auth.repository.ActivationTokenRepository;
 import com.montola.school.auth.repository.UserRepository;
-import com.montola.school.common.exception.RegistrationTokenExpiredException;
 import com.montola.school.common.exception.ResourceAlreadyExistsException;
 import com.montola.school.common.exception.ResourceNotFoundException;
 import com.montola.school.common.exception.UserNotFoundException;
-import com.montola.school.common.service.BusinessEmailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 /**
  * @author avidewan
@@ -32,69 +27,37 @@ import java.util.UUID;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-    private final ActivationTokenRepository activationTokenRepository;
+    private final ActivationTokenService activationTokenService;
 
     private final UserMapper userMapper;
 
     private final PasswordEncoder passwordEncoder;
 
-    private final BusinessEmailService  businessEmailService;
-
     @Override
     @Transactional
     public User createUser(UserRegisterRequest request) {
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new ResourceAlreadyExistsException("user.already.exists");
-        }
-
-        User user = userMapper.toEntity(request);
-        user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
-
-        User saved = userRepository.save(user);
-
-        ActivationToken token = ActivationToken.builder()
-                .user(saved)
-                .token(UUID.randomUUID().toString())
-                .expiry(LocalDateTime.now().plusMinutes(15))
-                .build();
-
-        activationTokenRepository.save(token);
-
-        businessEmailService.sendActivationEmail(user.getEmail(), token.getToken());
-
-        return saved;
+        return userRepository.findByEmail(request.getEmail())
+                .map(user -> handleExistingUnactivatedUser(user, request))
+                .orElseGet(() -> handleNewUser(request));
     }
 
     @Override
     @Transactional
     public void activateUser(String email, String token) {
-        ActivationToken activation = activationTokenRepository
-                .findByUserEmailAndToken(email, token)
-                .orElseThrow(() -> {
-                    User user = userRepository.findByEmail(email)
-                            .orElseThrow(() -> new ResourceNotFoundException("registration.token.notfound"));
-
-                    if (user.getIsActivated()) {
-                        throw new ResourceAlreadyExistsException("user.already.activated");
-                    }
-
-                    return new ResourceNotFoundException("registration.token.notfound");
-                });
-
-        if (activation.getExpiry().isBefore(LocalDateTime.now())) {
-            throw new RegistrationTokenExpiredException();
-        }
-
-        User user = activation.getUser();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("registration.token.notfound"));
 
         if (user.getIsActivated()) {
             throw new ResourceAlreadyExistsException("user.already.activated");
         }
 
+        ActivationToken activation = activationTokenService.findByEmailAndToken(email, token);
+        activationTokenService.validateToken(activation);
+
         user.setIsActivated(true);
         userRepository.save(user);
 
-        activationTokenRepository.deleteByUserEmail(email);
+        activationTokenService.deleteByUserEmail(email);
     }
 
 
@@ -108,17 +71,7 @@ public class UserServiceImpl implements UserService {
             throw new ResourceAlreadyExistsException("user.already.activated");
         }
 
-        activationTokenRepository.deleteByUserEmail(email);
-
-        ActivationToken token = ActivationToken.builder()
-                .user(user)
-                .token(UUID.randomUUID().toString())
-                .expiry(LocalDateTime.now().plusMinutes(15))
-                .build();
-
-        activationTokenRepository.save(token);
-
-        System.out.println("Resent activation token for " + user.getEmail() + ": " + token.getToken());
+        activationTokenService.replaceTokenForUser(user);
     }
 
 
@@ -146,5 +99,30 @@ public class UserServiceImpl implements UserService {
     public List<User> findAll() {
         return userRepository.findAll();
     }
-}
 
+    private User handleNewUser(UserRegisterRequest request) {
+        User user = userMapper.toEntity(request);
+        user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+
+        User saved = userRepository.save(user);
+
+        activationTokenService.issueTokenForUser(saved);
+        return saved;
+    }
+
+    private User handleExistingUnactivatedUser(User existingUser, UserRegisterRequest request) {
+        if (existingUser.getIsActivated()) {
+            throw new ResourceAlreadyExistsException("user.already.exists");
+        }
+
+        existingUser.setEmail(request.getPhone());
+        existingUser.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+        existingUser.setRoles(request.getRoles());
+
+        User updated = userRepository.save(existingUser);
+
+        activationTokenService.replaceTokenForUser(updated);
+
+        return updated;
+    }
+}
