@@ -1,9 +1,11 @@
 package com.montola.school.auth.service;
 
+import com.montola.school.auth.dto.ResetPasswordRequest;
 import com.montola.school.auth.dto.UserRegisterRequest;
 import com.montola.school.auth.enums.Role;
 import com.montola.school.auth.mapper.UserMapper;
 import com.montola.school.auth.model.ActivationToken;
+import com.montola.school.auth.model.ResetPasswordToken;
 import com.montola.school.auth.model.User;
 import com.montola.school.auth.repository.UserRepository;
 import com.montola.school.common.exception.ResourceAlreadyExistsException;
@@ -74,6 +76,11 @@ public class UserServiceImpl implements UserService {
         activationTokenService.replaceTokenForUser(user);
     }
 
+    @Override
+    @Transactional
+    public void resetPassword(ResetPasswordRequest request) {
+
+    }
 
     @Override
     public Optional<User> findByEmail(String email) {

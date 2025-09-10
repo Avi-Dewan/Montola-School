@@ -1,5 +1,6 @@
 package com.montola.school.auth.service;
 
+import com.montola.school.auth.dto.ResetPasswordRequest;
 import com.montola.school.auth.dto.UserRegisterRequest;
 import com.montola.school.auth.enums.Role;
 import com.montola.school.auth.model.User;
@@ -19,6 +20,8 @@ public interface UserService {
     void activateUser(String email, String token);
 
     void resendActivationToken(String email);
+
+    void resetPassword(ResetPasswordRequest request);
 
     Optional<User> findByEmail(String email);
 
