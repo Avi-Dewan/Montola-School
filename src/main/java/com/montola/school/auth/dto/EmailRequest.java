@@ -9,7 +9,7 @@ import lombok.Data;
  * @date 9/2/25
  */
 @Data
-public class ResendActivationRequest {
+public class EmailRequest {
 
     @Email
     @NotBlank

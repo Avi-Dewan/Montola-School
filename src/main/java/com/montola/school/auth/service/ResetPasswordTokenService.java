@@ -36,7 +36,7 @@ public class ResetPasswordTokenService {
     @Transactional(readOnly = true)
     public ResetPasswordToken findByEmailAndToken(String email, String token) {
         return resetPasswordTokenRepository.findByUserEmailAndToken(email, token)
-                .orElseThrow(() -> new ResourceNotFoundException("user.notfound"));
+                .orElseThrow(() -> new ResourceNotFoundException("reset.token.notfound"));
     }
 
     @Transactional
