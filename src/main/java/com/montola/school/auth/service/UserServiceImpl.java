@@ -1,5 +1,6 @@
 package com.montola.school.auth.service;
 
+import com.montola.school.auth.dto.ChangePasswordRequest;
 import com.montola.school.auth.dto.ResetPasswordRequest;
 import com.montola.school.auth.dto.UserRegisterRequest;
 import com.montola.school.auth.enums.Role;
@@ -8,10 +9,13 @@ import com.montola.school.auth.model.ActivationToken;
 import com.montola.school.auth.model.ResetPasswordToken;
 import com.montola.school.auth.model.User;
 import com.montola.school.auth.repository.UserRepository;
+import com.montola.school.auth.security.CustomUserDetails;
+import com.montola.school.common.exception.InvalidCredentialsException;
 import com.montola.school.common.exception.ResourceAlreadyExistsException;
 import com.montola.school.common.exception.ResourceNotFoundException;
 import com.montola.school.common.exception.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +34,7 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final ActivationTokenService activationTokenService;
+    private final ResetPasswordTokenService resetPasswordTokenService;
 
     private final UserMapper userMapper;
 
@@ -62,7 +67,6 @@ public class UserServiceImpl implements UserService {
         activationTokenService.deleteByUserEmail(email);
     }
 
-
     @Override
     @Transactional
     public void resendActivationToken(String email) {
@@ -78,8 +82,43 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void resetPassword(ResetPasswordRequest request) {
+    public void changePassword(ChangePasswordRequest request) {
+        CustomUserDetails currentUser =
+                (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
+        User user = userRepository.findById(currentUser.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("user.notfound"));
+
+        if (!passwordEncoder.matches(request.getOldPassword(), user.getPasswordHash())) {
+            throw new InvalidCredentialsException();
+        }
+
+        user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+    }
+
+    @Override
+    public void requestPasswordReset(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("user.notfound"));
+
+        resetPasswordTokenService.issueTokenForUser(user);
+    }
+
+    @Override
+    @Transactional
+    public void resetPassword(ResetPasswordRequest request) {
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new ResourceNotFoundException("user.notfound"));
+
+        ResetPasswordToken passwordToken = resetPasswordTokenService.
+                findByEmailAndToken(request.getEmail(),
+                        request.getToken());
+        resetPasswordTokenService.validateToken(passwordToken);
+
+        user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+
+        userRepository.save(user);
     }
 
     @Override

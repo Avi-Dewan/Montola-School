@@ -41,18 +41,19 @@ public class BusinessEmailService {
 
     public boolean sendPasswordResetEmail(String to, String token) {
         String subject = "✅ Password Reset Request - Montola School";
-        String resetLink = "http://localhost:8080/api/auth/reset-password?token=" + token;
+        String resetLink = "http://localhost:3000/auth/reset-password?email=" + to + "&token=" + token;
 
         String html = """
-            <div style="font-family:Arial, sans-serif; background-color:#f4fff4; padding:20px; border-radius:10px;">
-                <h2 style="color:#2e7d32;">Password Reset Request</h2>
-                <p>Click the button below to reset your password:</p>
-                <a href="%s" style="display:inline-block; padding:10px 20px; background-color:#66bb6a; color:white; text-decoration:none; border-radius:5px;">Reset Password</a>
-                <p style="color:#555;">If you did not request this, please ignore this email.</p>
-                <hr style="border:none; border-top:1px solid #2e7d32;"/>
-                <p style="font-size:12px; color:#777;">Montola School &copy; 2025</p>
-            </div>
-            """.formatted(resetLink);
+        <div style="font-family:Arial, sans-serif; background-color:#f4fff4; padding:20px; border-radius:10px;">
+            <h2 style="color:#2e7d32;">Password Reset Request</h2>
+            <p>Click the button below to reset your password:</p>
+            <a href="%s" style="display:inline-block; padding:10px 20px; background-color:#66bb6a; color:white; text-decoration:none; border-radius:5px;">Reset Password</a>
+            <p style="color:#555;">This link will expire in 15 minutes.</p>
+            <p style="color:#555;">If you did not request this, please ignore this email.</p>
+            <hr style="border:none; border-top:1px solid #2e7d32;"/>
+            <p style="font-size:12px; color:#777;">Montola School &copy; 2025</p>
+        </div>
+        """.formatted(resetLink);
 
         return sendEmail(to, subject, html);
     }

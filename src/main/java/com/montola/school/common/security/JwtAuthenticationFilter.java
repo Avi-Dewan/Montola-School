@@ -64,7 +64,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             email = jwtService.extractSubject(token);
 
             if (!jwtService.isValid(token, email)) {
-                throw new TokenExpiredException();
+                throw new TokenExpiredException("auth.token.expired");
             }
 
             if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
@@ -78,7 +78,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
 
         } catch (JwtException e) {
-            throw new TokenExpiredException();
+            throw new TokenExpiredException("auth.token.expired");
         }
 
         chain.doFilter(request, response);

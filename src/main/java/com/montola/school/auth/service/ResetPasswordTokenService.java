@@ -5,6 +5,7 @@ import com.montola.school.auth.model.User;
 import com.montola.school.auth.repository.ResetPasswordTokenRepository;
 import com.montola.school.common.exception.RegistrationTokenExpiredException;
 import com.montola.school.common.exception.ResourceNotFoundException;
+import com.montola.school.common.exception.TokenExpiredException;
 import com.montola.school.common.service.BusinessEmailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -35,7 +36,7 @@ public class ResetPasswordTokenService {
     @Transactional(readOnly = true)
     public ResetPasswordToken findByEmailAndToken(String email, String token) {
         return resetPasswordTokenRepository.findByUserEmailAndToken(email, token)
-                .orElseThrow(() -> new ResourceNotFoundException("reset.token.notfound"));
+                .orElseThrow(() -> new ResourceNotFoundException("user.notfound"));
     }
 
     @Transactional
@@ -45,7 +46,7 @@ public class ResetPasswordTokenService {
 
     public void validateToken(ResetPasswordToken token) {
         if (token.getExpiry().isBefore(LocalDateTime.now())) {
-            throw new RegistrationTokenExpiredException();
+            throw new TokenExpiredException("reset.token.expired");
         }
     }
 

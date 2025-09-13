@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -57,5 +58,31 @@ public class AuthController {
         userService.resendActivationToken(request.getEmail());
 
         return ResponseEntity.ok("A new activation link has been sent!");
+    }
+
+    @Operation(summary = "Change password for logged-in user")
+    @PostMapping("/change-password")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
+
+        userService.changePassword(request);
+
+        return ResponseEntity.ok("Password changed successfully");
+    }
+
+    @Operation(summary = "Request to reset password")
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestParam String email) {
+        userService.requestPasswordReset(email);
+
+        return ResponseEntity.ok("Password reset link has been sent!");
+    }
+
+    @Operation(summary = "Reset password  with token")
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestParam ResetPasswordRequest request) {
+        userService.resetPassword(request);
+
+        return ResponseEntity.ok("Password reset successfully!");
     }
 }
