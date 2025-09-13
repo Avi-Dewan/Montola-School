@@ -10,6 +10,12 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 /**
+ * Service responsible for sending business-related emails such as
+ * account activation, password resets, and purchase notifications.
+ *
+ * This service uses {@link JavaMailSender} for sending HTML emails.
+ * Logs both success and failure events for monitoring purposes.
+ *
  * @author avidewan
  * @date 9/5/25
  */
@@ -20,7 +26,13 @@ public class BusinessEmailService {
 
     private final JavaMailSender mailSender;
 
-    public boolean sendActivationEmail(String to, String token) {
+    /**
+     * Sends an account activation email with a 15-minute expiration link.
+     *
+     * @param to the recipient's email address
+     * @param token the activation token to include in the link
+     */
+    public void sendActivationEmail(String to, String token) {
         String subject = "✅ Activate Your Account - Montola School";
         String activationLink = "http://localhost:3000/auth/activate?email=" + to + "&token=" + token;
 
@@ -36,10 +48,18 @@ public class BusinessEmailService {
             </div>
             """.formatted(activationLink);
 
-        return sendEmail(to, subject, html);
+        if (sendEmail(to, subject, html)) {
+            log.info("Activation email sent successfully to {}", to);
+        }
     }
 
-    public boolean sendPasswordResetEmail(String to, String token) {
+    /**
+     * Sends a password reset email with a 15-minute expiration link.
+     *
+     * @param to the recipient's email address
+     * @param token the password reset token
+     */
+    public void sendPasswordResetEmail(String to, String token) {
         String subject = "✅ Password Reset Request - Montola School";
         String resetLink = "http://localhost:3000/auth/reset-password?email=" + to + "&token=" + token;
 
@@ -55,10 +75,19 @@ public class BusinessEmailService {
         </div>
         """.formatted(resetLink);
 
-        return sendEmail(to, subject, html);
+        if (sendEmail(to, subject, html)) {
+            log.info("Password reset email sent successfully to {}", to);
+        }
     }
 
-    public boolean sendPurchaseNotification(String to, String courseName, String packageName) {
+    /**
+     * Sends a purchase confirmation email to a user.
+     *
+     * @param to the recipient's email address
+     * @param courseName the name of the purchased course
+     * @param packageName the purchased package
+     */
+    public void sendPurchaseNotification(String to, String courseName, String packageName) {
         String subject = "✅ Purchase Confirmation - Montola School";
 
         String html = """
@@ -75,9 +104,20 @@ public class BusinessEmailService {
             </div>
             """.formatted(courseName, packageName);
 
-        return sendEmail(to, subject, html);
+        if (sendEmail(to, subject, html)) {
+            log.info("Purchase notification email sent to {} for course {} and package {}", to, courseName, packageName);
+        }
     }
 
+
+    /**
+     * Sends an HTML email using JavaMailSender.
+     *
+     * @param to the recipient email address
+     * @param subject the email subject
+     * @param htmlContent the HTML content of the email
+     * @return true if the email was sent successfully, false otherwise
+     */
     private boolean sendEmail(String to,
                               String subject,
                               String htmlContent) {

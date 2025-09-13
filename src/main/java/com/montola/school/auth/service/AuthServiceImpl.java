@@ -9,6 +9,7 @@ import com.montola.school.common.exception.UserNotActivatedException;
 import com.montola.school.common.exception.UserNotFoundException;
 import com.montola.school.common.security.JwtService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -23,6 +24,7 @@ import java.util.Map;
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthServiceImpl implements AuthService {
 
     private final AuthenticationManager authenticationManager;
@@ -30,6 +32,7 @@ public class AuthServiceImpl implements AuthService {
     private final JwtService jwtService;
 
     public AuthResponse login(LoginRequest request) {
+        log.info("Login attempt for email: {}", request.email());
 
         User user = userRepository.findByEmail(request.email())
                 .orElseThrow(UserNotFoundException::new);
@@ -40,6 +43,8 @@ public class AuthServiceImpl implements AuthService {
             );
 
         } catch (BadCredentialsException ex) {
+            log.warn("Invalid credentials for email: {}", request.email());
+
             throw new InvalidCredentialsException();
 
         }
@@ -52,6 +57,7 @@ public class AuthServiceImpl implements AuthService {
                 user.getEmail(),
                 Map.of( "roles", user.getRoles())
         );
+        log.info("Generated JWT for email: {}", user.getEmail());
 
         return new AuthResponse(token, user.getEmail());
     }

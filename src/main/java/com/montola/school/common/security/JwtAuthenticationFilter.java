@@ -19,6 +19,21 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 
 /**
+ * Filter that intercepts HTTP requests to validate JWT tokens.
+ * <p>
+ * This filter checks:
+ * <ul>
+ *     <li>If the request path is whitelisted (skipped authentication)</li>
+ *     <li>If the Authorization header contains a valid Bearer token</li>
+ *     <li>If the token is valid and not expired, it sets the {@link SecurityContextHolder} authentication</li>
+ * </ul>
+ *
+ * Throws {@link ResourceNotFoundException} if token is missing,
+ * {@link TokenExpiredException} if token is invalid or expired.
+ *
+ * Logs authentication failures and token validation issues for monitoring.
+ * </p>
+ *
  * @author avidewan
  * @date 8/29/25
  */
@@ -41,6 +56,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         AntPathMatcher pathMatcher = new AntPathMatcher();
 
+        // Skip JWT authentication for whitelisted paths
         boolean isWhitelisted = securityProperties.getWhiteList()
                 .stream()
                 .anyMatch(pattern -> pathMatcher.match(pattern, path));
@@ -54,6 +70,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String authHeader = request.getHeader("Authorization");
 
         if(authHeader == null || !authHeader.startsWith("Bearer ")) {
+            log.warn("Missing or malformed Authorization header for request to {}", path);
+
             throw new ResourceNotFoundException("auth.token.missing");
         }
 
@@ -64,6 +82,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             email = jwtService.extractSubject(token);
 
             if (!jwtService.isValid(token, email)) {
+                log.warn("Expired or invalid token for user {} on path {}", email, path);
+
                 throw new TokenExpiredException("auth.token.expired");
             }
 
@@ -75,10 +95,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
+
+                log.info("JWT authentication successful for user {} on path {}", email, path);
             }
 
         } catch (JwtException e) {
+            log.error("JWT parsing failed for request to {}. Reason: {}", path, e.getMessage());
+
             throw new TokenExpiredException("auth.token.expired");
+
+        } catch (UsernameNotFoundException e) {
+            log.error("User not found for token on path {}. Reason: {}", path, e.getMessage());
+
+            throw new ResourceNotFoundException("auth.user.notfound");
         }
 
         chain.doFilter(request, response);

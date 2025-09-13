@@ -22,6 +22,19 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.List;
 
 /**
+ * Central security configuration for Montola School application.
+ * <p>
+ * Configures:
+ * <ul>
+ *   <li>JWT authentication filter</li>
+ *   <li>CORS policy</li>
+ *   <li>Password encoding</li>
+ *   <li>Exception handling (authentication/authorization)</li>
+ *   <li>Stateless session management</li>
+ *   <li>Method-level security</li>
+ * </ul>
+ * </p>
+ *
  * @author avidewan
  * @date 8/27/25
  */
@@ -36,11 +49,19 @@ public class SecurityConfig {
     private final CustomAccessDeniedHandler accessDeniedHandler;
     private final SecurityProperties securityProperties;
 
+    /**
+     * Password encoder bean using BCrypt.
+     * <p>Must-have for secure password hashing.</p>
+     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
+    /**
+     * Configures global CORS policy for the application.
+     * <p>Recommended: define allowed origins and credentials to prevent CORS errors.</p>
+     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
@@ -56,6 +77,20 @@ public class SecurityConfig {
         return source;
     }
 
+    /**
+     * Configures Spring Security filter chain.
+     * <p>
+     * Key points:
+     * <ul>
+     *   <li>CSRF disabled (stateless REST API)</li>
+     *   <li>Stateless session management</li>
+     *   <li>JWT authentication filter added before UsernamePasswordAuthenticationFilter</li>
+     *   <li>Whitelist URLs are publicly accessible</li>
+     *   <li>All other requests require authentication</li>
+     *   <li>Custom exception handling for authentication and access denied</li>
+     * </ul>
+     * </p>
+     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
@@ -81,6 +116,10 @@ public class SecurityConfig {
         return http.build();
     }
 
+    /**
+     * Exposes the authentication manager bean.
+     * <p>Must-have for authentication in services or custom login flows.</p>
+     */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();

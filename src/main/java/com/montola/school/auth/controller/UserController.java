@@ -9,6 +9,7 @@ import com.montola.school.auth.enums.Role;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -26,6 +27,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
 @Tag(name = "User Management", description = "Endpoints to manage users")
+@Slf4j
 public class UserController {
 
     private final UserService userService;
@@ -35,10 +37,12 @@ public class UserController {
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     public ResponseEntity<List<UserResponse>> getAllUsers() {
+        log.info("Fetching all users");
         List<UserResponse> users = userService.findAll()
                 .stream()
                 .map(userMapper::toResponse)
                 .collect(Collectors.toList());
+        log.debug("Total users found: {}", users.size());
 
         return ResponseEntity.ok(users);
     }
@@ -47,10 +51,12 @@ public class UserController {
     @GetMapping("/role/{role}")
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     public ResponseEntity<List<UserResponse>> getUsersByRole(@PathVariable Role role) {
+        log.info("Fetching users with role: {}", role);
         List<UserResponse> users = userService.findAllByRolesContaining(role)
                 .stream()
                 .map(userMapper::toResponse)
                 .collect(Collectors.toList());
+        log.debug("Users found with role {}: {}", role, users.size());
 
         return ResponseEntity.ok(users);
     }
@@ -59,28 +65,48 @@ public class UserController {
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or #id == principal.id")
     public ResponseEntity<UserResponse> getUser(@PathVariable Long id) {
+        log.info("Fetching user by id: {}", id);
         Optional<User> userOpt = userService.findById(id);
 
-        return userOpt
-                .map(user -> ResponseEntity.ok(userMapper.toResponse(user)))
-                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+        if (userOpt.isPresent()) {
+            log.debug("User found with id {}", id);
+
+            return ResponseEntity.ok(userMapper.toResponse(userOpt.get()));
+
+        } else {
+            log.warn("User not found with id {}", id);
+
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
     }
 
     @Operation(summary = "Get user info by email")
     @GetMapping("/email")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or #email == principal.username")
     public ResponseEntity<UserResponse> getUser(@RequestParam String email) {
+        log.info("Fetching user by email: {}", email);
         Optional<User> userOpt = userService.findByEmail(email);
 
-        return userOpt
-                .map(user -> ResponseEntity.ok(userMapper.toResponse(user)))
-                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+        if (userOpt.isPresent()) {
+            log.debug("User found with email {}", email);
+
+            return ResponseEntity.ok(userMapper.toResponse(userOpt.get()));
+
+        } else {
+            log.warn("User not found with email {}", email);
+
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
     }
 
     @Operation(summary = "Check if email exists")
     @GetMapping("/exists")
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     public ResponseEntity<Boolean> emailExists(@RequestParam String email) {
-        return ResponseEntity.ok(userService.emailExists(email));
+        log.info("Checking if email exists: {}", email);
+        boolean exists = userService.emailExists(email);
+        log.debug("Email {} exists? {}", email, exists);
+
+        return ResponseEntity.ok(exists);
     }
 }
