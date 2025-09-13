@@ -10,10 +10,7 @@ import com.montola.school.auth.model.ResetPasswordToken;
 import com.montola.school.auth.model.User;
 import com.montola.school.auth.repository.UserRepository;
 import com.montola.school.auth.security.CustomUserDetails;
-import com.montola.school.common.exception.InvalidCredentialsException;
-import com.montola.school.common.exception.ResourceAlreadyExistsException;
-import com.montola.school.common.exception.ResourceNotFoundException;
-import com.montola.school.common.exception.UserNotFoundException;
+import com.montola.school.common.exception.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -46,6 +43,12 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public User createUser(UserRegisterRequest request) {
         log.info("Attempting to create user with email {}", request.getEmail());
+
+        if (request.getRoles().stream().anyMatch(role -> role == Role.ADMIN || role == Role.MANAGER)) {
+            log.info("Registration failed for MANAGER or ADMIN role. Need admin access");
+
+            throw new AccessDeniedCustomException("auth.role.not.allowedToRegister");
+        }
 
         return userRepository.findByEmail(request.getEmail())
                 .map(user -> {
