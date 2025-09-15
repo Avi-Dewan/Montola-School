@@ -63,8 +63,13 @@ desktop.ini
 
 # ---- Kotlin/Java compile outputs ----
 *.kotlin_module
-*.class
 
 # ---- Environment configs ----
 .env
 .env.*
+
+# Ignore Gradle project-specific cache directory
+.gradle
+
+# Ignore Gradle build output directory
+build
