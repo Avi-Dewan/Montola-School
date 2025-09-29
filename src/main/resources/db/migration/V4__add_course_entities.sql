@@ -1,5 +1,12 @@
 -- V4__add_course_entities
 
+-- Sequence for
+CREATE SEQUENCE classes_seq START 1 INCREMENT 1;
+CREATE SEQUENCE subjects_seq START 1 INCREMENT 1;
+CREATE SEQUENCE chapters_seq START 1 INCREMENT 1;
+CREATE SEQUENCE topics_seq START 1 INCREMENT 1;
+CREATE SEQUENCE lectures_seq START 1 INCREMENT 1;
+
 -- Classes
 CREATE TABLE classes (
     id BIGSERIAL PRIMARY KEY,
@@ -58,6 +65,7 @@ CREATE TABLE lectures (
     id BIGSERIAL PRIMARY KEY,
     topic_id BIGINT NOT NULL,
     title VARCHAR(200) NOT NULL,
+    video_id VARCHAR(50),
     content TEXT,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
