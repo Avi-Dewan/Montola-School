@@ -1,4 +1,4 @@
--- V4__add_course_entities
+-- db/migration/V3__add_course_entities
 
 -- Sequence for
 CREATE SEQUENCE classes_seq START 1 INCREMENT 1;
@@ -12,8 +12,10 @@ CREATE TABLE classes (
     id BIGSERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     description TEXT,
-    created_at TIMESTAMP DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW()
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP,
+    version BIGINT,
+    is_deleted BOOLEAN DEFAULT FALSE
 );
 
 -- Subjects
@@ -22,8 +24,10 @@ CREATE TABLE subjects (
     class_id BIGINT NOT NULL,
     name VARCHAR(100) NOT NULL,
     description TEXT,
-    created_at TIMESTAMP DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW(),
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP,
+    version BIGINT,
+    is_deleted BOOLEAN DEFAULT FALSE,
     CONSTRAINT fk_subject_class FOREIGN KEY (class_id)
       REFERENCES classes (id)
       ON DELETE CASCADE
@@ -37,8 +41,10 @@ CREATE TABLE chapters (
     description TEXT,
     status VARCHAR(20) NOT NULL DEFAULT 'DRAFT',
     created_by BIGINT NOT NULL,
-    created_at TIMESTAMP DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW(),
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP,
+    version BIGINT,
+    is_deleted BOOLEAN DEFAULT FALSE,
     CONSTRAINT fk_chapter_subject FOREIGN KEY (subject_id)
       REFERENCES subjects (id)
       ON DELETE CASCADE,
@@ -53,8 +59,10 @@ CREATE TABLE topics (
     chapter_id BIGINT NOT NULL,
     title VARCHAR(200) NOT NULL,
     description TEXT,
-    created_at TIMESTAMP DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW(),
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP,
+    version BIGINT,
+    is_deleted BOOLEAN DEFAULT FALSE,
     CONSTRAINT fk_topic_chapter FOREIGN KEY (chapter_id)
         REFERENCES chapters (id)
         ON DELETE CASCADE
@@ -67,8 +75,10 @@ CREATE TABLE lectures (
     title VARCHAR(200) NOT NULL,
     video_id VARCHAR(50),
     content TEXT,
-    created_at TIMESTAMP DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW(),
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP,
+    version BIGINT,
+    is_deleted BOOLEAN DEFAULT FALSE,
     CONSTRAINT fk_lecture_topic FOREIGN KEY (topic_id)
       REFERENCES topics (id)
       ON DELETE CASCADE
