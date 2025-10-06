@@ -2,6 +2,7 @@ package com.montola.school.course.model;
 
 import com.montola.school.auth.model.User;
 import com.montola.school.common.model.Persistent;
+import com.montola.school.course.enums.ChapterStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -33,8 +34,9 @@ public class Chapter extends Persistent {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private String status = "DRAFT";
+    private ChapterStatus status = ChapterStatus.DRAFT;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by", nullable = false)
