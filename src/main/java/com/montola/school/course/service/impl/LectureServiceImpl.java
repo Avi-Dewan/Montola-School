@@ -1,7 +1,11 @@
 package com.montola.school.course.service.impl;
 
+import com.montola.school.course.dto.LectureRequestDto;
+import com.montola.school.course.dto.LectureResponseDto;
+import com.montola.school.course.mapper.LectureMapper;
 import com.montola.school.course.model.Lecture;
 import com.montola.school.course.repository.LectureRepository;
+import com.montola.school.course.repository.TopicRepository;
 import com.montola.school.course.service.LectureService;
 import com.montola.school.common.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -10,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Implementation of {@link LectureService}.
@@ -27,49 +30,72 @@ import java.util.Optional;
 public class LectureServiceImpl implements LectureService {
 
     private final LectureRepository lectureRepository;
+    private final TopicRepository topicRepository;
+
+    private final LectureMapper lectureMapper;
 
     @Override
     @Transactional
-    public Lecture create(Lecture lecture) {
-        log.info("Creating new lecture: {}", lecture.getTitle());
-        return lectureRepository.save(lecture);
+    public LectureResponseDto create(LectureRequestDto dto) {
+        log.info("Creating new lecture: {}", dto.getTitle());
+
+        Lecture entity = lectureMapper.toEntity(dto);
+        entity.setTopic(
+                topicRepository.findById(dto.getTopicId())
+                        .orElseThrow(() -> new ResourceNotFoundException("topic.notfound"))
+        );
+
+        Lecture saved = lectureRepository.save(entity);
+
+        return lectureMapper.toResponseDto(saved);
     }
 
     @Override
-    public List<Lecture> getAll() {
+    public List<LectureResponseDto> getAll() {
         log.debug("Fetching all active lectures");
 
         return lectureRepository.findAll()
                 .stream()
                 .filter(l -> !l.isDeleted())
+                .map(lectureMapper::toResponseDto)
                 .toList();
     }
 
     @Override
-    public Optional<Lecture> getById(Long id) {
+    public LectureResponseDto getById(Long id) {
         log.debug("Fetching lecture by ID: {}", id);
 
-        return lectureRepository.findById(id)
-                .filter(l -> !l.isDeleted());
+        Lecture entity = lectureRepository.findById(id)
+                .filter(l -> !l.isDeleted())
+                .orElseThrow(() -> {
+                    log.error("Lecture not found with ID: {}", id);
+
+                    return new ResourceNotFoundException("lecture.notfound");
+                });
+
+        return lectureMapper.toResponseDto(entity);
     }
 
     @Override
     @Transactional
-    public Lecture update(Long id, Lecture updated) {
+    public LectureResponseDto update(Long id, LectureRequestDto dto) {
         log.info("Updating lecture with ID: {}", id);
 
-        return lectureRepository.findById(id)
-                .map(existing -> {
-                    existing.setTitle(updated.getTitle());
-                    existing.setContent(updated.getContent());
-                    existing.setVideoId(updated.getVideoId());
-
-                    return lectureRepository.save(existing);
-                })
+        Lecture existing = lectureRepository.findById(id)
+                .filter(l -> !l.isDeleted())
                 .orElseThrow(() -> {
                     log.error("Lecture not found with ID: {}", id);
+
                     return new ResourceNotFoundException("lecture.notfound");
                 });
+
+        existing.setTitle(dto.getTitle());
+        existing.setVideoId(dto.getVideoId());
+        existing.setContent(dto.getContent());
+
+        Lecture saved = lectureRepository.save(existing);
+
+        return lectureMapper.toResponseDto(saved);
     }
 
     @Override

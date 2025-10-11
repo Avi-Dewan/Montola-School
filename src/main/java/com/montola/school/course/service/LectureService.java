@@ -1,9 +1,9 @@
 package com.montola.school.course.service;
 
-import com.montola.school.course.model.Lecture;
+import com.montola.school.course.dto.LectureRequestDto;
+import com.montola.school.course.dto.LectureResponseDto;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Service for managing lectures.
@@ -18,17 +18,17 @@ public interface LectureService {
     /**
      * Creates a new lecture.
      *
-     * @param lecture the lecture to be created
+     * @param dto: the lecture to be created
      * @return the saved lecture entity
      */
-    Lecture create(Lecture lecture);
+    LectureResponseDto create(LectureRequestDto dto);
 
     /**
      * Retrieves all active (non-deleted) lectures.
      *
      * @return list of lectures
      */
-    List<Lecture> getAll();
+    List<LectureResponseDto> getAll();
 
     /**
      * Retrieves a lecture by its ID if not deleted.
@@ -36,7 +36,7 @@ public interface LectureService {
      * @param id the lecture ID
      * @return optional lecture entity
      */
-    Optional<Lecture> getById(Long id);
+   LectureResponseDto getById(Long id);
 
     /**
      * Updates an existing lecture.
@@ -45,7 +45,7 @@ public interface LectureService {
      * @param updated the updated details
      * @return the updated lecture entity
      */
-    Lecture update(Long id, Lecture updated);
+    LectureResponseDto update(Long id, LectureRequestDto updated);
 
     /**
      * Soft deletes a lecture by marking it as deleted.
