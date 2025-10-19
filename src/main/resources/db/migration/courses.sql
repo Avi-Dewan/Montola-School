@@ -1,4 +1,4 @@
--- db/migration/V3__add_course_entities
+-- db/migration/courses.sql
 
 -- Sequence for
 CREATE SEQUENCE classes_seq START 1 INCREMENT 1;
@@ -36,15 +36,15 @@ CREATE TABLE subjects (
 -- Chapters
 CREATE TABLE chapters (
     id BIGSERIAL PRIMARY KEY,
-    subject_id BIGINT NOT NULL,
-    title VARCHAR(200) NOT NULL,
+    subject_id  BIGINT       NOT NULL,
+    title       VARCHAR(200) NOT NULL,
     description TEXT,
-    status VARCHAR(20) NOT NULL DEFAULT 'DRAFT',
-    created_by BIGINT NOT NULL,
-    created_at TIMESTAMP,
-    updated_at TIMESTAMP,
-    version BIGINT,
-    is_deleted BOOLEAN DEFAULT FALSE,
+    status      VARCHAR(20) NOT NULL DEFAULT 'DRAFT',
+    created_by  BIGINT NOT NULL,
+    created_at  TIMESTAMP,
+    updated_at  TIMESTAMP,
+    version     BIGINT,
+    is_deleted  BOOLEAN DEFAULT FALSE,
     CONSTRAINT fk_chapter_subject FOREIGN KEY (subject_id)
       REFERENCES subjects (id)
       ON DELETE CASCADE,
@@ -71,7 +71,7 @@ CREATE TABLE topics (
 -- Lectures
 CREATE TABLE lectures (
     id BIGSERIAL PRIMARY KEY,
-    topic_id BIGINT NOT NULL,
+    topic_id BIGINT NOT NULL,   -- drop it
     title VARCHAR(200) NOT NULL,
     video_id VARCHAR(50),
     content TEXT,
