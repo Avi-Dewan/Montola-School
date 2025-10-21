@@ -2,7 +2,7 @@ package com.montola.school.course.mapper;
 
 import com.montola.school.course.dto.LectureRequestDto;
 import com.montola.school.course.dto.LectureResponseDto;
-import com.montola.school.course.model.Lecture;
+import com.montola.school.course.model.contents.Lecture;
 import org.mapstruct.Mapper;
 
 import java.util.List;

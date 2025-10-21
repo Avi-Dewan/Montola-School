@@ -1,6 +1,6 @@
 package com.montola.school.course.repository;
 
-import com.montola.school.course.model.Lecture;
+import com.montola.school.course.model.contents.Lecture;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

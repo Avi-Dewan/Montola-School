@@ -24,6 +24,9 @@ public class Chapter extends Persistent {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "chapters_seq")
     private Long id;
 
+    @Column(nullable = false, name = "order_index")
+    private int orderIndex;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "subject_id", nullable = false)
     private Subject subject;

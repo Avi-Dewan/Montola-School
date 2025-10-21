@@ -3,7 +3,7 @@ package com.montola.school.course.service.impl;
 import com.montola.school.course.dto.LectureRequestDto;
 import com.montola.school.course.dto.LectureResponseDto;
 import com.montola.school.course.mapper.LectureMapper;
-import com.montola.school.course.model.Lecture;
+import com.montola.school.course.model.contents.Lecture;
 import com.montola.school.course.repository.LectureRepository;
 import com.montola.school.course.repository.TopicRepository;
 import com.montola.school.course.service.LectureService;

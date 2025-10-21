@@ -22,6 +22,9 @@ public class Subject extends Persistent {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "subjects_seq")
     private Long id;
 
+    @Column(nullable = false, name = "order_index")
+    private int orderIndex;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "class_id", nullable = false)
     private ClassEntity classEntity;

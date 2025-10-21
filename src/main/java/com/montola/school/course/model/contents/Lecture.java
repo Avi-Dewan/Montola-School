@@ -1,6 +1,7 @@
-package com.montola.school.course.model;
+package com.montola.school.course.model.contents;
 
 import com.montola.school.common.model.Persistent;
+import com.montola.school.course.model.Topic;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
