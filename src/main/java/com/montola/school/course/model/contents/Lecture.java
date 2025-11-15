@@ -1,6 +1,7 @@
 package com.montola.school.course.model.contents;
 
 import com.montola.school.common.model.Persistent;
+import com.montola.school.course.model.ContentItem;
 import com.montola.school.course.model.Topic;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -21,9 +22,9 @@ public class Lecture extends Persistent {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "lectures_seq")
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "topic_id", nullable = false)
-    private Topic topic;
+    @OneToOne
+    @JoinColumn(name = "content_item_id", nullable = false)
+    private ContentItem contentItem;
 
     @Column(nullable = false, length = 200)
     private String title;

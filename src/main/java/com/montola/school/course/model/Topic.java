@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -36,7 +37,8 @@ public class Topic extends Persistent {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @OneToMany(mappedBy = "topic", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Lecture> lectures;
+    @OneToMany(mappedBy = "topic", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("orderIndex ASC")
+    private List<ContentItem> contentItems;
 }
 

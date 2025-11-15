@@ -2,6 +2,7 @@ package com.montola.school.course.model;
 
 import com.montola.school.common.model.Persistent;
 
+import com.montola.school.course.enums.ContentItemType;
 import com.montola.school.course.model.contents.Lecture;
 import com.montola.school.course.model.contents.Quiz;
 import jakarta.persistence.*;
@@ -27,8 +28,9 @@ public class ContentItem extends Persistent {
     @JoinColumn(name = "topic_id", nullable = false)
     private Topic topic;
 
-    @Column(nullable = false, length = 50)
-    private String type; // LECTURE | QUIZ | ...
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 30)
+    private ContentItemType type;
 
     @Column(name = "order_index", nullable = false)
     private int orderIndex;
