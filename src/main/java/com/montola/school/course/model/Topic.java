@@ -1,12 +1,10 @@
 package com.montola.school.course.model;
 
 import com.montola.school.common.model.Persistent;
-import com.montola.school.course.model.contents.Lecture;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**

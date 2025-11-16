@@ -2,13 +2,14 @@
 -- ======================================================
 
 -- Sequences
-CREATE SEQUENCE lectures_seq                START 1 INCREMENT 1;
-CREATE SEQUENCE quizzes_seq                 START 1 INCREMENT 1;
-CREATE SEQUENCE quiz_questions_seq          START 1 INCREMENT 1;
-CREATE SEQUENCE quiz_options_seq            START 1 INCREMENT 1;
-CREATE SEQUENCE quiz_written_answers_seq    START 1 INCREMENT 1;
-CREATE SEQUENCE quiz_fill_blanks_seq        START 1 INCREMENT 1;
-CREATE SEQUENCE quiz_table_matching_seq     START 1 INCREMENT 1;
+CREATE SEQUENCE lectures_seq                START 1 INCREMENT 2;
+CREATE SEQUENCE google_pdf_seq              START 1 INCREMENT 2;
+CREATE SEQUENCE quizzes_seq                 START 1 INCREMENT 2;
+CREATE SEQUENCE quiz_questions_seq          START 1 INCREMENT 2;
+CREATE SEQUENCE quiz_options_seq            START 1 INCREMENT 2;
+CREATE SEQUENCE quiz_written_answers_seq    START 1 INCREMENT 2;
+CREATE SEQUENCE quiz_fill_blanks_seq        START 1 INCREMENT 2;
+CREATE SEQUENCE quiz_table_matching_seq     START 1 INCREMENT 2;
 
 
 -- ==============================
@@ -30,6 +31,31 @@ CREATE TABLE lectures (
       CONSTRAINT fk_lecture_content_item FOREIGN KEY (content_item_id)
           REFERENCES content_items (id)
           ON DELETE CASCADE
+);
+
+-- ==============================
+-- 2️⃣ PDF (linked via content_item_id)
+-- ==============================
+
+-- google pdf
+CREATE TABLE pdf_google_contents (
+     id                 BIGSERIAL    PRIMARY KEY,
+     content_item_id    BIGINT       NOT NULL UNIQUE,
+     title              VARCHAR(255) NOT NULL,
+     mime_type          VARCHAR(100) NOT NULL,
+     size_bytes         BIGINT,
+     storage_provider   VARCHAR(30)  NOT NULL,
+     file_id            VARCHAR(200) NOT NULL,
+     page_count         INT,
+     created_at         TIMESTAMP,
+     updated_at         TIMESTAMP,
+     version            BIGINT,
+     is_deleted         BOOLEAN      DEFAULT FALSE,
+
+     CONSTRAINT fk_pdf_content_item
+         FOREIGN KEY (content_item_id)
+             REFERENCES content_items (id)
+             ON DELETE CASCADE
 );
 
 -- ==============================

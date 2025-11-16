@@ -1,6 +1,7 @@
 package com.montola.school.course.model.contents.quiz;
 
 import com.montola.school.common.model.Persistent;
+import com.montola.school.course.enums.QuestionType;
 import com.montola.school.course.model.contents.Quiz;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -30,8 +31,9 @@ public class QuizQuestion extends Persistent {
     @Column(name = "question_text", columnDefinition = "TEXT", nullable = false)
     private String questionText;
 
-    @Column(name = "question_type", length = 50)
-    private String questionType;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 30)
+    private QuestionType type;
 
     @Column(name = "order_index", nullable = false)
     private int orderIndex;
