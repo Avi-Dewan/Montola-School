@@ -18,9 +18,6 @@ import lombok.Setter;
 @Setter
 public abstract class ContentFile extends Persistent {
 
-    @Column(name = "title", nullable = false)
-    private String title;
-
     @Column(name = "mime_type", nullable = false, length = 100)
     private String mimeType;
 
@@ -32,4 +29,3 @@ public abstract class ContentFile extends Persistent {
     private StorageProvider storageProvider;
 
 }
-

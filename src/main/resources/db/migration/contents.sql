@@ -20,7 +20,6 @@ CREATE SEQUENCE quiz_table_matching_seq     START 1 INCREMENT 2;
 CREATE TABLE lectures (
       id                BIGINT       PRIMARY KEY,
       content_item_id   BIGINT       NOT NULL,
-      title             VARCHAR(200) NOT NULL,
       video_id          VARCHAR(50),
       content           TEXT,
       created_at        TIMESTAMP,
@@ -41,7 +40,6 @@ CREATE TABLE lectures (
 CREATE TABLE pdf_google_contents (
      id                 BIGSERIAL    PRIMARY KEY,
      content_item_id    BIGINT       NOT NULL UNIQUE,
-     title              VARCHAR(255) NOT NULL,
      mime_type          VARCHAR(100) NOT NULL,
      size_bytes         BIGINT,
      storage_provider   VARCHAR(30)  NOT NULL,
@@ -67,7 +65,6 @@ CREATE TABLE quizzes (
      id                 BIGINT       PRIMARY KEY,
      content_item_id    BIGINT       NOT NULL,
      quiz_type          VARCHAR(50)  NOT NULL,       -- 'MCQ' | 'WRITTEN' | 'FILL_BLANK' | 'TABLE_MATCHING'
-     title              VARCHAR(200) NOT NULL,
      instruction        TEXT,
      time_limit         INT,                         -- in minutes
      total_marks        INT,

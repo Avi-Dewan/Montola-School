@@ -29,6 +29,9 @@ public class ContentItem extends Persistent {
     @JoinColumn(name = "topic_id", nullable = false)
     private Topic topic;
 
+    @Column(nullable = false, length = 200)
+    private String title;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
     private ContentItemType type;

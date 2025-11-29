@@ -1,9 +1,8 @@
 package com.montola.school.course.mapper;
 
-import com.montola.school.course.dto.LectureRequestDto;
-import com.montola.school.course.dto.LectureResponseDto;
-import com.montola.school.course.model.ContentItem;
-import com.montola.school.course.model.contents.Lecture;
+import com.montola.school.course.dto.QuizRequestDto;
+import com.montola.school.course.dto.QuizResponseDto;
+import com.montola.school.course.model.contents.Quiz;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -11,18 +10,18 @@ import java.util.List;
 
 /**
  * @author avidewan
- * @date 10/11/25
+ * @date 11/17/25
  */
 @Mapper(componentModel = "spring")
-public interface LectureMapper {
+public interface QuizMapper {
 
-    Lecture toEntity(LectureRequestDto dto);
+    Quiz toEntity(QuizRequestDto dto);
 
     @Mapping(source = "contentItem.topic.id", target = "topicId")
     @Mapping(source = "contentItem.topic.title", target = "topicTitle")
     @Mapping(source = "contentItem.title", target = "title")
     @Mapping(source = "contentItem.orderIndex", target = "orderIndex")
-    LectureResponseDto toResponseDto(Lecture entity);
+    QuizResponseDto toResponseDto(Quiz entity);
 
-    List<LectureResponseDto> toResponseDtoList(List<Lecture> entities);
+    List<QuizResponseDto> toResponseDtoList(List<Quiz> entities);
 }

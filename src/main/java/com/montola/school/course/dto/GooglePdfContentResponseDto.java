@@ -2,24 +2,21 @@ package com.montola.school.course.dto;
 
 import lombok.*;
 
-import java.time.LocalDateTime;
-
 /**
  * @author avidewan
- * @date 10/7/25
+ * @date 11/17/25
  */
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class LectureResponseDto {
+public class GooglePdfContentResponseDto {
 
     private Long id;
     private String title;
-    private String videoId;
-    private String content;
-
+    private String googleFileId;
+    private Integer pageCount;
     private Long topicId;
     private String topicTitle;
     private int orderIndex;

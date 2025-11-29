@@ -1,5 +1,6 @@
 package com.montola.school.course.dto;
 
+import com.montola.school.course.enums.QuizType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -7,26 +8,32 @@ import lombok.*;
 
 /**
  * @author avidewan
- * @date 10/6/25
+ * @date 11/17/25
  */
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class LectureRequestDto {
+public class QuizRequestDto {
 
     @NotNull
     private Long topicId;
+
+    @NotNull
+    private QuizType quizType;
 
     @NotBlank
     @Size(max = 200)
     private String title;
 
-    @Size(max = 50)
-    private String videoId;
+    private String instruction;
 
-    private String content;
+    private Integer timeLimit;
+
+    private Integer totalMarks;
+
+    private Double passPercentage;
 
     @NotNull
     private Integer orderIndex;

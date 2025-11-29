@@ -2,8 +2,11 @@ package com.montola.school.course.service.impl;
 
 import com.montola.school.course.dto.LectureRequestDto;
 import com.montola.school.course.dto.LectureResponseDto;
+import com.montola.school.course.enums.ContentItemType;
 import com.montola.school.course.mapper.LectureMapper;
+import com.montola.school.course.model.ContentItem;
 import com.montola.school.course.model.contents.Lecture;
+import com.montola.school.course.repository.ContentItemRepository;
 import com.montola.school.course.repository.LectureRepository;
 import com.montola.school.course.repository.TopicRepository;
 import com.montola.school.course.service.LectureService;
@@ -31,6 +34,7 @@ public class LectureServiceImpl implements LectureService {
 
     private final LectureRepository lectureRepository;
     private final TopicRepository topicRepository;
+    private final ContentItemRepository contentItemRepository;
 
     private final LectureMapper lectureMapper;
 
@@ -39,11 +43,19 @@ public class LectureServiceImpl implements LectureService {
     public LectureResponseDto create(LectureRequestDto dto) {
         log.info("Creating new lecture: {}", dto.getTitle());
 
-        Lecture entity = lectureMapper.toEntity(dto);
-        entity.setTopic(
+        ContentItem contentItem = new ContentItem();
+        contentItem.setTopic(
                 topicRepository.findById(dto.getTopicId())
                         .orElseThrow(() -> new ResourceNotFoundException("topic.notfound"))
         );
+        contentItem.setTitle(dto.getTitle());
+        contentItem.setType(ContentItemType.LECTURE);
+        contentItem.setOrderIndex(dto.getOrderIndex());
+
+        ContentItem savedContentItem = contentItemRepository.save(contentItem);
+
+        Lecture entity = lectureMapper.toEntity(dto);
+        entity.setContentItem(savedContentItem);
 
         Lecture saved = lectureRepository.save(entity);
 
@@ -88,8 +100,8 @@ public class LectureServiceImpl implements LectureService {
 
                     return new ResourceNotFoundException("lecture.notfound");
                 });
-
-        existing.setTitle(dto.getTitle());
+        
+        existing.getContentItem().setTitle(dto.getTitle());
         existing.setVideoId(dto.getVideoId());
         existing.setContent(dto.getContent());
 

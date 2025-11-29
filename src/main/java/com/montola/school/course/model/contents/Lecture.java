@@ -26,9 +26,6 @@ public class Lecture extends Persistent {
     @JoinColumn(name = "content_item_id", nullable = false)
     private ContentItem contentItem;
 
-    @Column(nullable = false, length = 200)
-    private String title;
-
     @Column(length = 50)
     private String videoId;
 

@@ -13,5 +13,5 @@ import java.util.List;
 @Repository
 public interface LectureRepository extends JpaRepository<Lecture, Long> {
 
-    List<Lecture> findByTopicId(Long topicId);
+    List<Lecture> findByContentItem_Topic_Id(Long topicId);
 }

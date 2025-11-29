@@ -7,26 +7,27 @@ import lombok.*;
 
 /**
  * @author avidewan
- * @date 10/6/25
+ * @date 11/17/25
  */
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class LectureRequestDto {
+public class GooglePdfContentRequestDto {
 
     @NotNull
     private Long topicId;
 
     @NotBlank
-    @Size(max = 200)
+    @Size(max = 255)
     private String title;
 
-    @Size(max = 50)
-    private String videoId;
+    @NotBlank
+    @Size(max = 200)
+    private String googleFileId;
 
-    private String content;
+    private Integer pageCount;
 
     @NotNull
     private Integer orderIndex;

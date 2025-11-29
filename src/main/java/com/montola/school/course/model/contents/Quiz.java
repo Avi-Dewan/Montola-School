@@ -33,9 +33,6 @@ public class Quiz extends Persistent {
     @Column(name = "quiz_type", nullable = false, length = 50)
     private QuizType quizType; // MCQ | WRITTEN | FILL_BLANK | TABLE_MATCHING
 
-    @Column(nullable = false, length = 200)
-    private String title;
-
     @Column(columnDefinition = "TEXT")
     private String instruction;
 
