@@ -16,7 +16,7 @@ import java.util.List;
 @Table(name = "quiz_options")
 @Getter
 @Setter
-@SequenceGenerator(name = "quiz_options_seq", sequenceName = "quiz_options_seq", allocationSize = 1)
+@SequenceGenerator(name = "quiz_options_seq", sequenceName = "quiz_options_seq", allocationSize = 2)
 public class QuizOption extends Persistent {
 
     @Id
@@ -33,4 +33,3 @@ public class QuizOption extends Persistent {
     @Column(name = "is_correct")
     private boolean isCorrect;
 }
-

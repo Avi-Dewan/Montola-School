@@ -16,7 +16,7 @@ import java.util.List;
 @Table(name = "quiz_table_matching")
 @Getter
 @Setter
-@SequenceGenerator(name = "quiz_table_matching_seq", sequenceName = "quiz_table_matching_seq", allocationSize = 1)
+@SequenceGenerator(name = "quiz_table_matching_seq", sequenceName = "quiz_table_matching_seq", allocationSize = 2)
 public class QuizTableMatching extends Persistent {
 
     @Id
@@ -36,4 +36,3 @@ public class QuizTableMatching extends Persistent {
     @Column(name = "order_index")
     private int orderIndex;
 }
-

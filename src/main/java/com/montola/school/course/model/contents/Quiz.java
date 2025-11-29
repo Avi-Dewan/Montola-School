@@ -1,6 +1,7 @@
 package com.montola.school.course.model.contents;
 
 import com.montola.school.common.model.Persistent;
+import com.montola.school.course.enums.QuizType;
 import com.montola.school.course.model.ContentItem;
 import com.montola.school.course.model.contents.quiz.QuizQuestion;
 import jakarta.persistence.*;
@@ -17,7 +18,7 @@ import java.util.List;
 @Table(name = "quizzes")
 @Getter
 @Setter
-@SequenceGenerator(name = "quizzes_seq", sequenceName = "quizzes_seq", allocationSize = 1)
+@SequenceGenerator(name = "quizzes_seq", sequenceName = "quizzes_seq", allocationSize = 2)
 public class Quiz extends Persistent {
 
     @Id
@@ -28,8 +29,9 @@ public class Quiz extends Persistent {
     @JoinColumn(name = "content_item_id", nullable = false)
     private ContentItem contentItem;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "quiz_type", nullable = false, length = 50)
-    private String quizType; // MCQ | WRITTEN | FILL_BLANK | TABLE_MATCHING
+    private QuizType quizType; // MCQ | WRITTEN | FILL_BLANK | TABLE_MATCHING
 
     @Column(nullable = false, length = 200)
     private String title;

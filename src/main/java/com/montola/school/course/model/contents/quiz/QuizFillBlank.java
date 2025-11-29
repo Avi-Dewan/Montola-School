@@ -16,7 +16,7 @@ import java.util.List;
 @Table(name = "quiz_fill_blanks")
 @Getter
 @Setter
-@SequenceGenerator(name = "quiz_fill_blanks_seq", sequenceName = "quiz_fill_blanks_seq", allocationSize = 1)
+@SequenceGenerator(name = "quiz_fill_blanks_seq", sequenceName = "quiz_fill_blanks_seq", allocationSize = 2)
 public class QuizFillBlank extends Persistent {
 
     @Id
@@ -33,4 +33,3 @@ public class QuizFillBlank extends Persistent {
     @Column(name = "correct_answer", length = 255, nullable = false)
     private String correctAnswer;
 }
-

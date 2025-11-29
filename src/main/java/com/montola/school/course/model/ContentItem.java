@@ -5,6 +5,7 @@ import com.montola.school.common.model.Persistent;
 import com.montola.school.course.enums.ContentItemType;
 import com.montola.school.course.model.contents.Lecture;
 import com.montola.school.course.model.contents.Quiz;
+import com.montola.school.course.model.contents.file.GooglePdfContent;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -40,4 +41,7 @@ public class ContentItem extends Persistent {
 
     @OneToOne(mappedBy = "contentItem", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Quiz quiz;
+
+    @OneToOne(mappedBy = "contentItem", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private GooglePdfContent googlePdfContent;
 }

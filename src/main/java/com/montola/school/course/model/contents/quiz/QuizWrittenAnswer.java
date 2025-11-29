@@ -16,7 +16,7 @@ import java.util.List;
 @Table(name = "quiz_written_answers")
 @Getter
 @Setter
-@SequenceGenerator(name = "quiz_written_answers_seq", sequenceName = "quiz_written_answers_seq", allocationSize = 1)
+@SequenceGenerator(name = "quiz_written_answers_seq", sequenceName = "quiz_written_answers_seq", allocationSize = 2)
 public class QuizWrittenAnswer extends Persistent {
 
     @Id

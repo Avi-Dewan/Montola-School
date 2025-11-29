@@ -15,10 +15,11 @@ import static com.montola.school.course.enums.StorageProvider.GOOGLE_DRIVE;
 @Table(name = "pdf_google_contents")
 @Getter
 @Setter
+@SequenceGenerator(name = "google_pdf_seq", sequenceName = "google_pdf_seq", allocationSize = 2)
 public class GooglePdfContent extends ContentFile {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "google_pdf_seq")
     private Long id;
 
     @OneToOne
@@ -36,4 +37,3 @@ public class GooglePdfContent extends ContentFile {
         setMimeType("application/pdf");
     }
 }
-

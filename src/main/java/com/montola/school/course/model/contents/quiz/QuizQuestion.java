@@ -17,7 +17,7 @@ import java.util.List;
 @Table(name = "quiz_questions")
 @Getter
 @Setter
-@SequenceGenerator(name = "quiz_questions_seq", sequenceName = "quiz_questions_seq", allocationSize = 1)
+@SequenceGenerator(name = "quiz_questions_seq", sequenceName = "quiz_questions_seq", allocationSize = 2)
 public class QuizQuestion extends Persistent {
 
     @Id
@@ -53,4 +53,3 @@ public class QuizQuestion extends Persistent {
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<QuizTableMatching> tableMatchings;
 }
-

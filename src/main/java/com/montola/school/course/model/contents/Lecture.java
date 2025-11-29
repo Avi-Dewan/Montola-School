@@ -15,7 +15,7 @@ import lombok.Setter;
 @Table(name = "lectures")
 @Getter
 @Setter
-@SequenceGenerator(name = "lectures_seq", sequenceName = "lectures_seq", allocationSize = 1)
+@SequenceGenerator(name = "lectures_seq", sequenceName = "lectures_seq", allocationSize = 2)
 public class Lecture extends Persistent {
 
     @Id
