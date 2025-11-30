@@ -1,27 +1,12 @@
 package com.montola.school.course.dto;
 
-import lombok.*;
+import lombok.Data;
 
-import java.util.List;
-
-/**
- * @author avidewan
- * @date 10/7/25
- */
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@Data
 public class SubjectResponseDto {
-
     private Long id;
     private String name;
     private String description;
-
+    private int orderIndex;
     private Long classId;
-    private String className;
-
-    private List<ChapterSummaryDto> chapters;
 }
-

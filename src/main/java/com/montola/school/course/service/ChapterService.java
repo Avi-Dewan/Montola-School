@@ -1,6 +1,7 @@
 package com.montola.school.course.service;
 
-import com.montola.school.course.model.Chapter;
+import com.montola.school.course.dto.ChapterRequestDto;
+import com.montola.school.course.dto.ChapterResponseDto;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,17 +19,17 @@ public interface ChapterService {
     /**
      * Creates a new chapter.
      *
-     * @param chapter the chapter entity to be created
+     * @param dto the chapter entity to be created
      * @return the saved chapter entity
      */
-    Chapter create(Chapter chapter);
+    ChapterResponseDto create(ChapterRequestDto dto);
 
     /**
      * Retrieves all active (non-deleted) chapters.
      *
      * @return list of chapters
      */
-    List<Chapter> getAll();
+    List<ChapterResponseDto> getAll();
 
     /**
      * Retrieves a chapter by its ID if not deleted.
@@ -36,16 +37,16 @@ public interface ChapterService {
      * @param id the chapter ID
      * @return optional chapter entity
      */
-    Optional<Chapter> getById(Long id);
+    Optional<ChapterResponseDto> getById(Long id);
 
     /**
      * Updates an existing chapter.
      *
      * @param id the chapter ID
-     * @param updated the updated chapter details
+     * @param dto the updated chapter details
      * @return the updated chapter entity
      */
-    Chapter update(Long id, Chapter updated);
+    ChapterResponseDto update(Long id, ChapterRequestDto dto);
 
     /**
      * Soft deletes a chapter by marking it as deleted.
@@ -54,4 +55,3 @@ public interface ChapterService {
      */
     void delete(Long id);
 }
-

@@ -1,7 +1,11 @@
 package com.montola.school.course.service.impl;
 
+import com.montola.school.course.dto.ChapterRequestDto;
+import com.montola.school.course.dto.ChapterResponseDto;
+import com.montola.school.course.mapper.ChapterMapper;
 import com.montola.school.course.model.Chapter;
 import com.montola.school.course.repository.ChapterRepository;
+import com.montola.school.course.repository.SubjectRepository;
 import com.montola.school.course.service.ChapterService;
 import com.montola.school.common.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Implementation of {@link ChapterService}.
@@ -26,49 +31,51 @@ import java.util.Optional;
 public class ChapterServiceImpl implements ChapterService {
 
     private final ChapterRepository chapterRepository;
+    private final SubjectRepository subjectRepository;
+    private final ChapterMapper chapterMapper;
 
     @Override
     @Transactional
-    public Chapter create(Chapter chapter) {
-        log.info("Creating new chapter: {}", chapter.getTitle());
-
-        return chapterRepository.save(chapter);
+    public ChapterResponseDto create(ChapterRequestDto dto) {
+        log.info("Creating new chapter: {}", dto.getTitle());
+        Chapter chapter = chapterMapper.toEntity(dto);
+        chapter.setSubject(subjectRepository.findById(dto.getSubjectId())
+                .orElseThrow(() -> new ResourceNotFoundException("subject.notfound")));
+        return chapterMapper.toResponseDto(chapterRepository.save(chapter));
     }
 
     @Override
-    public List<Chapter> getAll() {
+    public List<ChapterResponseDto> getAll() {
         log.debug("Fetching all active chapters");
-
         return chapterRepository.findAll()
                 .stream()
                 .filter(c -> !c.isDeleted())
-                .toList();
+                .map(chapterMapper::toResponseDto)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public Optional<Chapter> getById(Long id) {
+    public Optional<ChapterResponseDto> getById(Long id) {
         log.debug("Fetching chapter by ID: {}", id);
-
         return chapterRepository.findById(id)
-                .filter(c -> !c.isDeleted());
+                .filter(c -> !c.isDeleted())
+                .map(chapterMapper::toResponseDto);
     }
 
     @Override
     @Transactional
-    public Chapter update(Long id, Chapter updated) {
+    public ChapterResponseDto update(Long id, ChapterRequestDto dto) {
         log.info("Updating chapter with ID: {}", id);
-
         return chapterRepository.findById(id)
                 .map(existing -> {
-                    existing.setTitle(updated.getTitle());
-                    existing.setDescription(updated.getDescription());
-                    existing.setStatus(updated.getStatus());
-
-                    return chapterRepository.save(existing);
+                    existing.setTitle(dto.getTitle());
+                    existing.setDescription(dto.getDescription());
+                    existing.setStatus(dto.getStatus());
+                    existing.setOrderIndex(dto.getOrderIndex());
+                    return chapterMapper.toResponseDto(chapterRepository.save(existing));
                 })
                 .orElseThrow(() -> {
                     log.error("Chapter not found with ID: {}", id);
-
                     return new ResourceNotFoundException("chapter.notfound");
                 });
     }
@@ -77,7 +84,6 @@ public class ChapterServiceImpl implements ChapterService {
     @Transactional
     public void delete(Long id) {
         log.warn("Soft deleting chapter with ID: {}", id);
-
         chapterRepository.findById(id).ifPresent(entity -> {
             entity.setDeleted(true);
             chapterRepository.save(entity);

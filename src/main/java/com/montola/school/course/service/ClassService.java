@@ -1,6 +1,7 @@
 package com.montola.school.course.service;
 
-import com.montola.school.course.model.ClassEntity;
+import com.montola.school.course.dto.ClassRequestDto;
+import com.montola.school.course.dto.ClassResponseDto;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,17 +19,17 @@ public interface ClassService {
     /**
      * Creates a new class.
      *
-     * @param classEntity the class to be created
+     * @param dto the class to be created
      * @return the saved class entity
      */
-    ClassEntity create(ClassEntity classEntity);
+    ClassResponseDto create(ClassRequestDto dto);
 
     /**
      * Retrieves all active (non-deleted) classes.
      *
      * @return list of classes
      */
-    List<ClassEntity> getAll();
+    List<ClassResponseDto> getAll();
 
     /**
      * Retrieves a class by its ID if not deleted.
@@ -36,16 +37,16 @@ public interface ClassService {
      * @param id the class ID
      * @return optional class entity
      */
-    Optional<ClassEntity> getById(Long id);
+    Optional<ClassResponseDto> getById(Long id);
 
     /**
      * Updates an existing class.
      *
      * @param id the class ID
-     * @param updated the updated details
+     * @param dto the updated details
      * @return the updated class entity
      */
-    ClassEntity update(Long id, ClassEntity updated);
+    ClassResponseDto update(Long id, ClassRequestDto dto);
 
     /**
      * Soft deletes a class by marking it as deleted.

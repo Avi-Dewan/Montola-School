@@ -1,6 +1,7 @@
 package com.montola.school.course.service;
 
-import com.montola.school.course.model.Subject;
+import com.montola.school.course.dto.SubjectRequestDto;
+import com.montola.school.course.dto.SubjectResponseDto;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,17 +19,17 @@ public interface SubjectService {
     /**
      * Creates a new subject.
      *
-     * @param subject the subject to be created
+     * @param dto the subject to be created
      * @return the saved subject entity
      */
-    Subject create(Subject subject);
+    SubjectResponseDto create(SubjectRequestDto dto);
 
     /**
      * Retrieves all active (non-deleted) subjects.
      *
      * @return list of subjects
      */
-    List<Subject> getAll();
+    List<SubjectResponseDto> getAll();
 
     /**
      * Retrieves a subject by its ID if not deleted.
@@ -36,16 +37,16 @@ public interface SubjectService {
      * @param id the subject ID
      * @return optional subject entity
      */
-    Optional<Subject> getById(Long id);
+    Optional<SubjectResponseDto> getById(Long id);
 
     /**
      * Updates an existing subject.
      *
      * @param id the subject ID
-     * @param updated the updated details
+     * @param dto the updated details
      * @return the updated subject entity
      */
-    Subject update(Long id, Subject updated);
+    SubjectResponseDto update(Long id, SubjectRequestDto dto);
 
     /**
      * Soft deletes a subject by marking it as deleted.

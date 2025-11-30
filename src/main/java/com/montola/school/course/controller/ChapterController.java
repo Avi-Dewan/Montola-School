@@ -1,0 +1,80 @@
+package com.montola.school.course.controller;
+
+import com.montola.school.course.dto.ChapterRequestDto;
+import com.montola.school.course.dto.ChapterResponseDto;
+import com.montola.school.course.service.ChapterService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+/**
+ * @author avidewan
+ * @date 11/30/25
+ */
+@RestController
+@RequestMapping("/api/v1/chapters")
+@RequiredArgsConstructor
+@Tag(name = "Chapter Management", description = "Endpoints to manage chapters")
+@Slf4j
+public class ChapterController {
+
+    private final ChapterService chapterService;
+
+    @Operation(summary = "Create a new chapter")
+    @PostMapping
+    public ResponseEntity<ChapterResponseDto> createChapter(@Valid @RequestBody ChapterRequestDto dto) {
+        log.info("Creating new chapter: {}", dto.getTitle());
+        ChapterResponseDto createdChapter = chapterService.create(dto);
+        log.info("Chapter created with id: {}", createdChapter.getId());
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdChapter);
+    }
+
+    @Operation(summary = "Get all chapters")
+    @GetMapping
+    public ResponseEntity<List<ChapterResponseDto>> getAllChapters() {
+        log.info("Fetching all chapters");
+        List<ChapterResponseDto> chapters = chapterService.getAll();
+        log.debug("Total chapters found: {}", chapters.size());
+        return ResponseEntity.ok(chapters);
+    }
+
+    @Operation(summary = "Get chapter by id")
+    @GetMapping("/{id}")
+    public ResponseEntity<ChapterResponseDto> getChapterById(@PathVariable Long id) {
+        log.info("Fetching chapter by id: {}", id);
+        return chapterService.getById(id)
+                .map(chapterDto -> {
+                    log.debug("Chapter found with id {}", id);
+                    return ResponseEntity.ok(chapterDto);
+                })
+                .orElseGet(() -> {
+                    log.warn("Chapter not found with id {}", id);
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+                });
+    }
+
+    @Operation(summary = "Update a chapter")
+    @PutMapping("/{id}")
+    public ResponseEntity<ChapterResponseDto> updateChapter(@PathVariable Long id, @Valid @RequestBody ChapterRequestDto dto) {
+        log.info("Updating chapter with id: {}", id);
+        ChapterResponseDto updatedChapter = chapterService.update(id, dto);
+        log.info("Chapter updated with id: {}", updatedChapter.getId());
+        return ResponseEntity.ok(updatedChapter);
+    }
+
+    @Operation(summary = "Delete a chapter")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteChapter(@PathVariable Long id) {
+        log.info("Deleting chapter with id: {}", id);
+        chapterService.delete(id);
+        log.info("Chapter deleted with id: {}", id);
+        return ResponseEntity.noContent().build();
+    }
+}

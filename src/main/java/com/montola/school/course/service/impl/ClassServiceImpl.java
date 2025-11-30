@@ -1,6 +1,9 @@
 package com.montola.school.course.service.impl;
 
 import com.montola.school.common.exception.ResourceNotFoundException;
+import com.montola.school.course.dto.ClassRequestDto;
+import com.montola.school.course.dto.ClassResponseDto;
+import com.montola.school.course.mapper.ClassMapper;
 import com.montola.school.course.model.ClassEntity;
 import com.montola.school.course.repository.ClassRepository;
 import com.montola.school.course.service.ClassService;
@@ -11,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Implementation of {@link ClassService}.
@@ -27,48 +31,46 @@ import java.util.Optional;
 public class ClassServiceImpl implements ClassService {
 
     private final ClassRepository classRepository;
+    private final ClassMapper classMapper;
 
     @Override
     @Transactional
-    public ClassEntity create(ClassEntity classEntity) {
-        log.info("Creating new class: {}", classEntity.getName());
-
-        return classRepository.save(classEntity);
+    public ClassResponseDto create(ClassRequestDto dto) {
+        log.info("Creating new class: {}", dto.getName());
+        ClassEntity classEntity = classMapper.toEntity(dto);
+        return classMapper.toResponseDto(classRepository.save(classEntity));
     }
 
     @Override
-    public List<ClassEntity> getAll() {
+    public List<ClassResponseDto> getAll() {
         log.debug("Fetching all active classes");
-
         return classRepository.findAll()
                 .stream()
                 .filter(c -> !c.isDeleted())
-                .toList();
+                .map(classMapper::toResponseDto)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public Optional<ClassEntity> getById(Long id) {
+    public Optional<ClassResponseDto> getById(Long id) {
         log.debug("Fetching class by ID: {}", id);
-
         return classRepository.findById(id)
-                .filter(c -> !c.isDeleted());
+                .filter(c -> !c.isDeleted())
+                .map(classMapper::toResponseDto);
     }
 
     @Override
     @Transactional
-    public ClassEntity update(Long id, ClassEntity updated) {
+    public ClassResponseDto update(Long id, ClassRequestDto dto) {
         log.info("Updating class with ID: {}", id);
-
         return classRepository.findById(id)
                 .map(existing -> {
-                    existing.setName(updated.getName());
-                    existing.setDescription(updated.getDescription());
-
-                    return classRepository.save(existing);
+                    existing.setName(dto.getName());
+                    existing.setDescription(dto.getDescription());
+                    return classMapper.toResponseDto(classRepository.save(existing));
                 })
                 .orElseThrow(() -> {
                     log.error("Class not found with ID: {}", id);
-
                     return new ResourceNotFoundException("class.notfound");
                 });
     }
@@ -77,7 +79,6 @@ public class ClassServiceImpl implements ClassService {
     @Transactional
     public void delete(Long id) {
         log.warn("Soft deleting class with ID: {}", id);
-
         classRepository.findById(id).ifPresent(entity -> {
             entity.setDeleted(true);
             classRepository.save(entity);

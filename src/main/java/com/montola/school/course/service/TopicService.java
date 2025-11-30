@@ -1,6 +1,7 @@
 package com.montola.school.course.service;
 
-import com.montola.school.course.model.Topic;
+import com.montola.school.course.dto.TopicRequestDto;
+import com.montola.school.course.dto.TopicResponseDto;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,17 +19,17 @@ public interface TopicService {
     /**
      * Creates a new topic.
      *
-     * @param topic the topic to be created
+     * @param dto the topic to be created
      * @return the saved topic entity
      */
-    Topic create(Topic topic);
+    TopicResponseDto create(TopicRequestDto dto);
 
     /**
      * Retrieves all active (non-deleted) topics.
      *
      * @return list of topics
      */
-    List<Topic> getAll();
+    List<TopicResponseDto> getAll();
 
     /**
      * Retrieves a topic by its ID if not deleted.
@@ -36,16 +37,16 @@ public interface TopicService {
      * @param id the topic ID
      * @return optional topic entity
      */
-    Optional<Topic> getById(Long id);
+    Optional<TopicResponseDto> getById(Long id);
 
     /**
      * Updates an existing topic.
      *
      * @param id the topic ID
-     * @param updated the updated details
+     * @param dto the updated details
      * @return the updated topic entity
      */
-    Topic update(Long id, Topic updated);
+    TopicResponseDto update(Long id, TopicRequestDto dto);
 
     /**
      * Soft deletes a topic by marking it as deleted.

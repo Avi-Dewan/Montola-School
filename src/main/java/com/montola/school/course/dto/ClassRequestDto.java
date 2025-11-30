@@ -2,24 +2,12 @@ package com.montola.school.course.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import lombok.*;
+import lombok.Data;
 
-/**
- * @author avidewan
- * @date 10/6/25
- */
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@Data
 public class ClassRequestDto {
-
     @NotBlank
-    @Size(min = 3, max = 40)
+    @Size(max = 100)
     private String name;
-
-    @NotBlank
-    @Size(min = 50, max = 400)
     private String description;
 }
