@@ -38,7 +38,7 @@ CREATE TABLE lectures (
 
 -- google pdf
 CREATE TABLE pdf_google_contents (
-     id                 BIGSERIAL    PRIMARY KEY,
+     id                 BIGINT       PRIMARY KEY DEFAULT nextval('google_pdf_seq'),
      content_item_id    BIGINT       NOT NULL UNIQUE,
      mime_type          VARCHAR(100) NOT NULL,
      size_bytes         BIGINT,
