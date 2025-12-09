@@ -7,7 +7,7 @@ CREATE SEQUENCE user_seq START 1;
 CREATE TABLE users (
     id              BIGINT PRIMARY KEY DEFAULT nextval('user_seq'),
     email           VARCHAR(255),
-    phone           VARCHAR(20),
+    phone           VARCHAR(255),
     password_hash   VARCHAR(255),
     created_at      TIMESTAMP,
     updated_at      TIMESTAMP,

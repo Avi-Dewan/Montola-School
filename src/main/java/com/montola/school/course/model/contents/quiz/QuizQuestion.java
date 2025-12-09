@@ -32,7 +32,7 @@ public class QuizQuestion extends Persistent {
     private String questionText;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 30)
+    @Column(name="question_type", nullable = false, length = 50)
     private QuestionType type;
 
     @Column(name = "order_index", nullable = false)

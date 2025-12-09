@@ -17,7 +17,7 @@ import java.util.List;
 @Getter
 @Setter
 @SequenceGenerator(name = "quiz_table_matching_seq", sequenceName = "quiz_table_matching_seq", allocationSize = 2)
-public class QuizTableMatching extends Persistent {
+public class QuizTableMatching {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "quiz_table_matching_seq")

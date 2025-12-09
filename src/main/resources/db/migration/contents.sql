@@ -131,7 +131,7 @@ CREATE TABLE quiz_written_answers (
 CREATE TABLE quiz_fill_blanks (
     id              BIGINT       PRIMARY KEY,
     question_id     BIGINT       NOT NULL,
-    position        INT          NOT NULL,
+    blank_position  INT          NOT NULL,
     correct_answer  VARCHAR(255) NOT NULL,
     created_at      TIMESTAMP,
     updated_at      TIMESTAMP,

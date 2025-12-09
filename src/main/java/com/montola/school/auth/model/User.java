@@ -42,7 +42,7 @@ public class User extends Persistent {
     @ElementCollection(fetch = FetchType.EAGER)
     @Enumerated(EnumType.STRING)
     @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
-    @Column(name = "role")
+    @Column(name = "role", length = 50)
     @NotEmpty
     private Set<Role> roles;
 }

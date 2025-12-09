@@ -8,6 +8,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -43,7 +44,7 @@ public class Quiz extends Persistent {
     private Integer totalMarks;
 
     @Column(name = "pass_percentage", precision = 5, scale = 2)
-    private Double passPercentage = 60.0;
+    private BigDecimal passPercentage = new BigDecimal("60.00");
 
     @OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<QuizQuestion> questions;

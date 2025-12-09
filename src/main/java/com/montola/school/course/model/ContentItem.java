@@ -33,7 +33,7 @@ public class ContentItem extends Persistent {
     private String title;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 30)
+    @Column(nullable = false, length = 50)
     private ContentItemType type;
 
     @Column(name = "order_index", nullable = false)
