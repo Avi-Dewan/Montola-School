@@ -5,7 +5,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
-import java.math.BigDecimal;
+
+
 
 /**
  * @author avidewan
@@ -34,7 +35,7 @@ public class QuizRequestDto {
 
     private Integer totalMarks;
 
-    private BigDecimal passPercentage;
+    private Double passPercentage;
 
     @NotNull
     private Integer orderIndex;

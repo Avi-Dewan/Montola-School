@@ -68,7 +68,7 @@ CREATE TABLE quizzes (
      instruction        TEXT,
      time_limit         INT,                         -- in minutes
      total_marks        INT,
-     pass_percentage DECIMAL(5,2) DEFAULT 60.00,
+     pass_percentage DOUBLE PRECISION DEFAULT 60.0,
      created_at         TIMESTAMP,
      updated_at         TIMESTAMP,
      version            BIGINT,

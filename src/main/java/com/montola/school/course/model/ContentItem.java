@@ -1,7 +1,6 @@
 package com.montola.school.course.model;
 
 import com.montola.school.common.model.Persistent;
-
 import com.montola.school.course.enums.ContentItemType;
 import com.montola.school.course.model.contents.Lecture;
 import com.montola.school.course.model.contents.Quiz;

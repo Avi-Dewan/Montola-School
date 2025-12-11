@@ -32,7 +32,9 @@ public class ChapterServiceImpl implements ChapterService {
 
     private final ChapterRepository chapterRepository;
     private final SubjectRepository subjectRepository;
+    private final com.montola.school.course.repository.TopicRepository topicRepository;
     private final ChapterMapper chapterMapper;
+    private final com.montola.school.course.service.TopicService topicService;
 
     @Override
     @Transactional
@@ -85,6 +87,11 @@ public class ChapterServiceImpl implements ChapterService {
     public void delete(Long id) {
         log.warn("Soft deleting chapter with ID: {}", id);
         chapterRepository.findById(id).ifPresent(entity -> {
+            // Cascade delete topics
+            topicRepository.findByChapterId(id).forEach(topic -> {
+                topicService.delete(topic.getId());
+            });
+
             entity.setDeleted(true);
             chapterRepository.save(entity);
         });

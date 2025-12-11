@@ -33,7 +33,9 @@ public class SubjectServiceImpl implements SubjectService {
 
     private final SubjectRepository subjectRepository;
     private final ClassRepository classRepository;
+    private final com.montola.school.course.repository.ChapterRepository chapterRepository;
     private final SubjectMapper subjectMapper;
+    private final com.montola.school.course.service.ChapterService chapterService;
 
     @Override
     @Transactional
@@ -85,6 +87,11 @@ public class SubjectServiceImpl implements SubjectService {
     public void delete(Long id) {
         log.warn("Soft deleting subject with ID: {}", id);
         subjectRepository.findById(id).ifPresent(entity -> {
+            // Cascade delete chapters
+            chapterRepository.findBySubjectId(id).forEach(chapter -> {
+                chapterService.delete(chapter.getId());
+            });
+
             entity.setDeleted(true);
             subjectRepository.save(entity);
         });

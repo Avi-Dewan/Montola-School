@@ -2,7 +2,7 @@ package com.montola.school.course.dto;
 
 import com.montola.school.course.enums.QuizType;
 import lombok.*;
-import java.math.BigDecimal;
+
 
 /**
  * @author avidewan
@@ -21,7 +21,7 @@ public class QuizResponseDto {
     private String instruction;
     private Integer timeLimit;
     private Integer totalMarks;
-    private BigDecimal passPercentage;
+    private Double passPercentage;
     private Long topicId;
     private String topicTitle;
     private int orderIndex;

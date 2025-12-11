@@ -1,12 +1,8 @@
 package com.montola.school.course.model.contents.quiz;
 
-import com.montola.school.common.model.Persistent;
-import com.montola.school.course.model.contents.Quiz;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.util.List;
 
 /**
  * @author avidewan

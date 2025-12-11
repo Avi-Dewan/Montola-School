@@ -6,6 +6,7 @@ import com.montola.school.course.mapper.TopicMapper;
 import com.montola.school.course.model.Topic;
 import com.montola.school.course.repository.ChapterRepository;
 import com.montola.school.course.repository.TopicRepository;
+import com.montola.school.course.repository.ContentItemRepository;
 import com.montola.school.course.service.TopicService;
 import com.montola.school.common.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +34,9 @@ public class TopicServiceImpl implements TopicService {
 
     private final TopicRepository topicRepository;
     private final ChapterRepository chapterRepository;
+    private final ContentItemRepository contentItemRepository;
     private final TopicMapper topicMapper;
+    private final com.montola.school.course.service.ContentItemService contentItemService;
 
     @Override
     @Transactional
@@ -85,6 +88,11 @@ public class TopicServiceImpl implements TopicService {
     public void delete(Long id) {
         log.warn("Soft deleting topic with ID: {}", id);
         topicRepository.findById(id).ifPresent(entity -> {
+            // Cascade delete content items
+            contentItemRepository.findByTopicId(id).forEach(contentItem -> {
+                contentItemService.delete(contentItem.getId());
+            });
+
             entity.setDeleted(true);
             topicRepository.save(entity);
         });

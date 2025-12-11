@@ -31,7 +31,9 @@ import java.util.stream.Collectors;
 public class ClassServiceImpl implements ClassService {
 
     private final ClassRepository classRepository;
+    private final com.montola.school.course.repository.SubjectRepository subjectRepository;
     private final ClassMapper classMapper;
+    private final com.montola.school.course.service.SubjectService subjectService;
 
     @Override
     @Transactional
@@ -80,6 +82,11 @@ public class ClassServiceImpl implements ClassService {
     public void delete(Long id) {
         log.warn("Soft deleting class with ID: {}", id);
         classRepository.findById(id).ifPresent(entity -> {
+            // Cascade delete subjects
+            subjectRepository.findByClassEntity_Id(id).forEach(subject -> {
+                subjectService.delete(subject.getId());
+            });
+
             entity.setDeleted(true);
             classRepository.save(entity);
         });
