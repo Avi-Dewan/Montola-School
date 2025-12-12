@@ -36,6 +36,7 @@ public class ContentController {
     @PostMapping("/lecture")
     public ResponseEntity<?> createLecture(@RequestBody LectureRequestDto dto) {
         log.info("Creating new lecture");
+
         return ResponseEntity.status(HttpStatus.CREATED).body(lectureService.create(dto));
     }
 
@@ -43,6 +44,7 @@ public class ContentController {
     @PostMapping("/quiz")
     public ResponseEntity<?> createQuiz(@RequestBody QuizRequestDto dto) {
         log.info("Creating new quiz");
+
         return ResponseEntity.status(HttpStatus.CREATED).body(quizService.create(dto));
     }
 
@@ -50,6 +52,7 @@ public class ContentController {
     @PostMapping("/pdf")
     public ResponseEntity<?> createGooglePdfContent(@RequestBody GooglePdfContentRequestDto dto) {
         log.info("Creating new Google PDF content");
+
         return ResponseEntity.status(HttpStatus.CREATED).body(googlePdfContentService.create(dto));
     }
 }

@@ -33,6 +33,7 @@ public class TopicController {
         log.info("Creating new topic: {}", dto.getTitle());
         TopicResponseDto createdTopic = topicService.create(dto);
         log.info("Topic created with id: {}", createdTopic.getId());
+
         return ResponseEntity.status(HttpStatus.CREATED).body(createdTopic);
     }
 
@@ -42,6 +43,7 @@ public class TopicController {
         log.info("Fetching all topics");
         List<TopicResponseDto> topics = topicService.getAll();
         log.debug("Total topics found: {}", topics.size());
+
         return ResponseEntity.ok(topics);
     }
 
@@ -66,6 +68,7 @@ public class TopicController {
         log.info("Updating topic with id: {}", id);
         TopicResponseDto updatedTopic = topicService.update(id, dto);
         log.info("Topic updated with id: {}", updatedTopic.getId());
+
         return ResponseEntity.ok(updatedTopic);
     }
 
@@ -75,6 +78,7 @@ public class TopicController {
         log.info("Deleting topic with id: {}", id);
         topicService.delete(id);
         log.info("Topic deleted with id: {}", id);
+
         return ResponseEntity.noContent().build();
     }
 }

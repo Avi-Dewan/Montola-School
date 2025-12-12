@@ -14,4 +14,6 @@ import java.util.List;
 public interface TopicRepository extends JpaRepository<Topic, Long> {
 
     List<Topic> findByChapterId(Long chapterId);
+
+    List<Topic> findByChapterIdIn(List<Long> chapterIds);
 }

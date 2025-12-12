@@ -3,6 +3,9 @@ package com.montola.school.course.controller;
 import com.montola.school.course.dto.ChapterRequestDto;
 import com.montola.school.course.dto.ChapterResponseDto;
 import com.montola.school.course.service.ChapterService;
+import com.montola.school.course.dto.structure.ChapterStructureResponseDto;
+import com.montola.school.course.service.CourseStructureService;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -26,6 +29,7 @@ import java.util.List;
 public class ChapterController {
 
     private final ChapterService chapterService;
+    private final CourseStructureService courseStructureService;
 
     @Operation(summary = "Create a new chapter")
     @PostMapping
@@ -33,6 +37,7 @@ public class ChapterController {
         log.info("Creating new chapter: {}", dto.getTitle());
         ChapterResponseDto createdChapter = chapterService.create(dto);
         log.info("Chapter created with id: {}", createdChapter.getId());
+
         return ResponseEntity.status(HttpStatus.CREATED).body(createdChapter);
     }
 
@@ -42,6 +47,7 @@ public class ChapterController {
         log.info("Fetching all chapters");
         List<ChapterResponseDto> chapters = chapterService.getAll();
         log.debug("Total chapters found: {}", chapters.size());
+
         return ResponseEntity.ok(chapters);
     }
 
@@ -49,6 +55,7 @@ public class ChapterController {
     @GetMapping("/{id}")
     public ResponseEntity<ChapterResponseDto> getChapterById(@PathVariable Long id) {
         log.info("Fetching chapter by id: {}", id);
+
         return chapterService.getById(id)
                 .map(chapterDto -> {
                     log.debug("Chapter found with id {}", id);
@@ -66,6 +73,7 @@ public class ChapterController {
         log.info("Updating chapter with id: {}", id);
         ChapterResponseDto updatedChapter = chapterService.update(id, dto);
         log.info("Chapter updated with id: {}", updatedChapter.getId());
+
         return ResponseEntity.ok(updatedChapter);
     }
 
@@ -75,6 +83,15 @@ public class ChapterController {
         log.info("Deleting chapter with id: {}", id);
         chapterService.delete(id);
         log.info("Chapter deleted with id: {}", id);
+
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Get full course structure for a chapter (Tree View)")
+    @GetMapping("/{id}/structure")
+    public ResponseEntity<ChapterStructureResponseDto> getChapterStructure(@PathVariable Long id) {
+        log.info("Fetching structure for chapter id: {}", id);
+
+        return ResponseEntity.ok(courseStructureService.getChapterStructure(id));
     }
 }

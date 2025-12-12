@@ -14,4 +14,6 @@ import java.util.List;
 public interface ContentItemRepository extends JpaRepository<ContentItem, Long> {
 
     List<ContentItem> findByTopicId(Long topicId);
+
+    List<ContentItem> findByTopicIdIn(List<Long> topicIds);
 }

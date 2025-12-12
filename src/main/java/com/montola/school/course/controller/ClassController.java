@@ -3,6 +3,9 @@ package com.montola.school.course.controller;
 import com.montola.school.course.dto.ClassRequestDto;
 import com.montola.school.course.dto.ClassResponseDto;
 import com.montola.school.course.service.ClassService;
+import com.montola.school.course.dto.structure.ClassStructureResponseDto;
+import com.montola.school.course.service.CourseStructureService;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -26,6 +29,7 @@ import java.util.List;
 public class ClassController {
 
     private final ClassService classService;
+    private final CourseStructureService courseStructureService;
 
     @Operation(summary = "Create a new class")
     @PostMapping
@@ -33,6 +37,7 @@ public class ClassController {
         log.info("Creating new class: {}", dto.getName());
         ClassResponseDto createdClass = classService.create(dto);
         log.info("Class created with id: {}", createdClass.getId());
+
         return ResponseEntity.status(HttpStatus.CREATED).body(createdClass);
     }
 
@@ -76,5 +81,13 @@ public class ClassController {
         classService.delete(id);
         log.info("Class deleted with id: {}", id);
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Get full course structure for a class (Tree View)")
+    @GetMapping("/{id}/structure")
+    public ResponseEntity<ClassStructureResponseDto> getClassStructure(@PathVariable Long id) {
+        log.info("Fetching structure for class id: {}", id);
+
+        return ResponseEntity.ok(courseStructureService.getClassStructure(id));
     }
 }

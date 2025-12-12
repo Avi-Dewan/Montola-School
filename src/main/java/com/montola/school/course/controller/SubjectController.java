@@ -3,6 +3,9 @@ package com.montola.school.course.controller;
 import com.montola.school.course.dto.SubjectRequestDto;
 import com.montola.school.course.dto.SubjectResponseDto;
 import com.montola.school.course.service.SubjectService;
+import com.montola.school.course.dto.structure.SubjectStructureResponseDto;
+import com.montola.school.course.service.CourseStructureService;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -26,6 +29,7 @@ import java.util.List;
 public class SubjectController {
 
     private final SubjectService subjectService;
+    private final CourseStructureService courseStructureService;
 
     @Operation(summary = "Create a new subject")
     @PostMapping
@@ -33,6 +37,7 @@ public class SubjectController {
         log.info("Creating new subject: {}", dto.getName());
         SubjectResponseDto createdSubject = subjectService.create(dto);
         log.info("Subject created with id: {}", createdSubject.getId());
+
         return ResponseEntity.status(HttpStatus.CREATED).body(createdSubject);
     }
 
@@ -42,6 +47,7 @@ public class SubjectController {
         log.info("Fetching all subjects");
         List<SubjectResponseDto> subjects = subjectService.getAll();
         log.debug("Total subjects found: {}", subjects.size());
+
         return ResponseEntity.ok(subjects);
     }
 
@@ -49,6 +55,7 @@ public class SubjectController {
     @GetMapping("/{id}")
     public ResponseEntity<SubjectResponseDto> getSubjectById(@PathVariable Long id) {
         log.info("Fetching subject by id: {}", id);
+
         return subjectService.getById(id)
                 .map(subjectDto -> {
                     log.debug("Subject found with id {}", id);
@@ -62,10 +69,12 @@ public class SubjectController {
 
     @Operation(summary = "Update a subject")
     @PutMapping("/{id}")
-    public ResponseEntity<SubjectResponseDto> updateSubject(@PathVariable Long id, @Valid @RequestBody SubjectRequestDto dto) {
+    public ResponseEntity<SubjectResponseDto> updateSubject(@PathVariable Long id,
+                                                            @Valid @RequestBody SubjectRequestDto dto) {
         log.info("Updating subject with id: {}", id);
         SubjectResponseDto updatedSubject = subjectService.update(id, dto);
         log.info("Subject updated with id: {}", updatedSubject.getId());
+
         return ResponseEntity.ok(updatedSubject);
     }
 
@@ -75,6 +84,15 @@ public class SubjectController {
         log.info("Deleting subject with id: {}", id);
         subjectService.delete(id);
         log.info("Subject deleted with id: {}", id);
+
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Get full course structure for a subject (Tree View)")
+    @GetMapping("/{id}/structure")
+    public ResponseEntity<SubjectStructureResponseDto> getSubjectStructure(@PathVariable Long id) {
+        log.info("Fetching structure for subject id: {}", id);
+
+        return ResponseEntity.ok(courseStructureService.getSubjectStructure(id));
     }
 }
