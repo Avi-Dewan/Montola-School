@@ -2,6 +2,7 @@ package com.montola.school.common.security;
 
 import com.montola.school.common.exception.ResourceNotFoundException;
 import com.montola.school.common.exception.TokenExpiredException;
+import com.montola.school.common.exception.TokenMissingException;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -72,7 +73,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if(authHeader == null || !authHeader.startsWith("Bearer ")) {
             log.warn("Missing or malformed Authorization header for request to {}", path);
 
-            throw new ResourceNotFoundException("auth.token.missing");
+            throw new TokenMissingException("auth.token.missing");
         }
 
         String token = authHeader.substring(7);

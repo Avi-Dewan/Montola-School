@@ -76,18 +76,11 @@ public class CourseStructureServiceImpl implements CourseStructureService {
 
         List<Long> topicIds = topics.stream().map(Topic::getId).collect(Collectors.toList());
 
-        // 5. Fetch ContentItems
-        List<ContentItem> contentItems = Collections.emptyList();
-        if (!topicIds.isEmpty()) {
-            contentItems = contentItemRepository.findByTopicIdIn(topicIds).stream()
-                    .filter(c -> !c.isDeleted())
-                    .collect(Collectors.toList());
-        }
+        // 5. Fetch ContentItems - SKIPPED for Light View
+        // Optimization: We do not fetch content items for the class structure view.
+        // This makes the initial load much faster.
 
         // 6. Assemble Tree
-        Map<Long, List<ContentItem>> contentByTopicId = contentItems.stream()
-                .collect(Collectors.groupingBy(c -> c.getTopic().getId()));
-
         Map<Long, List<Topic>> topicsByChapterId = topics.stream()
                 .collect(Collectors.groupingBy(t -> t.getChapter().getId()));
 
@@ -98,16 +91,15 @@ public class CourseStructureServiceImpl implements CourseStructureService {
         List<SubjectStructureResponseDto> subjectDtos = subjects.stream()
                 .map(subject -> {
                     List<Chapter> subjectChapters = chaptersBySubjectId.getOrDefault(subject.getId(), Collections.emptyList());
+
                     List<ChapterStructureResponseDto> chapterDtos = subjectChapters.stream()
                             .map(chapter -> {
                                 List<Topic> chapterTopics = topicsByChapterId.getOrDefault(chapter.getId(), Collections.emptyList());
+
                                 List<TopicStructureResponseDto> topicDtos = chapterTopics.stream()
                                         .map(topic -> {
-                                            List<ContentItem> topicContent = contentByTopicId.getOrDefault(topic.getId(), Collections.emptyList());
-                                            List<ContentItemStructureResponseDto> contentDtos = topicContent.stream()
-                                                    .map(this::toContentDto)
-                                                    .collect(Collectors.toList());
-                                            return toTopicDto(topic, contentDtos);
+                                            // Light view: No content items
+                                            return toTopicDto(topic, Collections.emptyList());
                                         })
                                         .collect(Collectors.toList());
                                 return toChapterDto(chapter, topicDtos);
