@@ -13,8 +13,11 @@ import com.montola.school.course.repository.ContentItemRepository;
 import com.montola.school.course.repository.SubjectRepository;
 import com.montola.school.course.repository.TopicRepository;
 import com.montola.school.course.service.CourseStructureService;
+import com.montola.school.learner.repository.EnrollmentRepository;
+import com.montola.school.auth.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,6 +41,7 @@ public class CourseStructureServiceImpl implements CourseStructureService {
     private final ChapterRepository chapterRepository;
     private final TopicRepository topicRepository;
     private final ContentItemRepository contentItemRepository;
+    private final EnrollmentRepository enrollmentRepository;
 
     @Override
     public ClassStructureResponseDto getClassStructure(Long classId) {
@@ -193,6 +197,19 @@ public class CourseStructureServiceImpl implements CourseStructureService {
                     .collect(Collectors.toList());
         }
 
+        // Check Enrollment Status (Access Control)
+        Long currentUserId = getCurrentUserId();
+        boolean isEnrolled = false;
+        if (currentUserId != null) {
+            isEnrolled = enrollmentRepository.existsByUserIdAndChapterId(currentUserId, chapterId);
+        }
+
+        // If not enrolled, Hide Content Items
+        if (!isEnrolled) {
+            contentItems = Collections.emptyList();
+            log.info("Chapter {} not enrolled by user {}. Hiding content items.", chapterId, currentUserId);
+        }
+
         // 3. Assemble
         Map<Long, List<ContentItem>> contentByTopicId = contentItems.stream()
                 .collect(Collectors.groupingBy(c -> c.getTopic().getId()));
@@ -254,5 +271,15 @@ public class CourseStructureServiceImpl implements CourseStructureService {
                 .type(entity.getType())
                 .orderIndex(entity.getOrderIndex())
                 .build();
+    }
+
+    private Long getCurrentUserId() {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails) {
+            return ((CustomUserDetails) authentication.getPrincipal()).getId();
+        }
+
+        return null;
     }
 }
