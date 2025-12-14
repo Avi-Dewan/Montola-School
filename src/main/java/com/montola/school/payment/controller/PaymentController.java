@@ -46,19 +46,19 @@ public class PaymentController {
 
     // --- Admin Endpoints ---
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     public ResponseEntity<List<PaymentResponseDto>> getAllPayments() {
         return ResponseEntity.ok(paymentService.getAllPayments());
     }
 
     @GetMapping("/unverified")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     public ResponseEntity<List<PaymentResponseDto>> getUnverifiedPayments() {
         return ResponseEntity.ok(paymentService.getUnverifiedPayments());
     }
 
     @PutMapping("/{paymentId}/verify")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     public ResponseEntity<PaymentResponseDto> verifyPayment(@AuthenticationPrincipal CustomUserDetails currentUser,
                                                             @PathVariable Long paymentId) {
         log.info("Request to verify payment {} by admin {}", paymentId, currentUser.getId());
