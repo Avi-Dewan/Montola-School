@@ -8,6 +8,14 @@ import com.montola.school.course.repository.ChapterRepository;
 import com.montola.school.course.repository.SubjectRepository;
 import com.montola.school.course.service.ChapterService;
 import com.montola.school.common.exception.ResourceNotFoundException;
+import com.montola.school.course.model.ChapterTeacher;
+import com.montola.school.course.repository.ChapterTeacherRepository;
+import com.montola.school.auth.repository.UserRepository;
+import com.montola.school.auth.model.User;
+import com.montola.school.auth.enums.Role;
+import com.montola.school.course.enums.ChapterStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.Authentication;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -35,6 +43,8 @@ public class ChapterServiceImpl implements ChapterService {
     private final com.montola.school.course.repository.TopicRepository topicRepository;
     private final ChapterMapper chapterMapper;
     private final com.montola.school.course.service.TopicService topicService;
+    private final ChapterTeacherRepository chapterTeacherRepository;
+    private final UserRepository userRepository;
 
     @Override
     @Transactional
@@ -43,15 +53,36 @@ public class ChapterServiceImpl implements ChapterService {
         Chapter chapter = chapterMapper.toEntity(dto);
         chapter.setSubject(subjectRepository.findById(dto.getSubjectId())
                 .orElseThrow(() -> new ResourceNotFoundException("subject.notfound")));
+
+        // Ensure new chapters are created as DRAFT
+        if (chapter.getStatus() == null) {
+            chapter.setStatus(com.montola.school.course.enums.ChapterStatus.DRAFT);
+        }
+
         return chapterMapper.toResponseDto(chapterRepository.save(chapter));
     }
 
     @Override
     public List<ChapterResponseDto> getAll() {
         log.debug("Fetching all active chapters");
+
+        // Get current user from security context
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        boolean isStudent = authentication != null &&
+                authentication.getAuthorities().stream()
+                        .anyMatch(auth -> auth.getAuthority().equals("ROLE_STUDENT"));
+
         return chapterRepository.findAll()
                 .stream()
                 .filter(c -> !c.isDeleted())
+                .filter(c -> {
+                    // Students only see PUBLISHED chapters
+                    if (isStudent) {
+                        return c.getStatus() == ChapterStatus.PUBLISHED;
+                    }
+                    // ADMIN/MANAGER/TEACHER see all
+                    return true;
+                })
                 .map(chapterMapper::toResponseDto)
                 .collect(Collectors.toList());
     }
@@ -95,5 +126,43 @@ public class ChapterServiceImpl implements ChapterService {
             entity.setDeleted(true);
             chapterRepository.save(entity);
         });
+    }
+
+    @Override
+    @Transactional
+    public void assignTeacher(Long chapterId, Long teacherId, Long assignedBy) {
+        log.info("Assigning teacher {} to chapter {}", teacherId, chapterId);
+
+        Chapter chapter = chapterRepository.findById(chapterId)
+                .orElseThrow(() -> new ResourceNotFoundException("chapter.notfound"));
+
+        User teacher = userRepository.findById(teacherId)
+                .orElseThrow(() -> new ResourceNotFoundException("auth.user.notfound"));
+
+        User assigner = userRepository.findById(assignedBy)
+                .orElseThrow(() -> new ResourceNotFoundException("auth.user.notfound"));
+
+        // Check if already assigned
+        if (chapterTeacherRepository.existsByChapterIdAndTeacherId(chapterId, teacherId)) {
+            log.warn("Teacher {} already assigned to chapter {}", teacherId, chapterId);
+            return;
+        }
+
+        ChapterTeacher chapterTeacher = new ChapterTeacher();
+        chapterTeacher.setChapter(chapter);
+        chapterTeacher.setTeacher(teacher);
+        chapterTeacher.setAssignedBy(assigner);
+        chapterTeacher.setAssignedAt(java.time.LocalDateTime.now());
+
+        chapterTeacherRepository.save(chapterTeacher);
+        log.info("Teacher {} successfully assigned to chapter {}", teacherId, chapterId);
+    }
+
+    @Override
+    @Transactional
+    public void unassignTeacher(Long chapterId, Long teacherId) {
+        log.info("Unassigning teacher {} from chapter {}", teacherId, chapterId);
+        chapterTeacherRepository.deleteByChapterIdAndTeacherId(chapterId, teacherId);
+        log.info("Teacher {} successfully unassigned from chapter {}", teacherId, chapterId);
     }
 }

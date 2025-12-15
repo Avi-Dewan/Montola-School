@@ -11,6 +11,7 @@ import com.montola.school.course.repository.LectureRepository;
 import com.montola.school.course.repository.TopicRepository;
 import com.montola.school.course.service.LectureService;
 import com.montola.school.common.exception.ResourceNotFoundException;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -118,6 +119,19 @@ public class LectureServiceImpl implements LectureService {
         lectureRepository.findById(id).ifPresent(entity -> {
             entity.setDeleted(true);
             lectureRepository.save(entity);
+            lectureRepository.save(entity);
+            lectureRepository.save(entity);
         });
+    }
+
+    @Override
+    public LectureResponseDto getByContentItemId(Long contentItemId) {
+        log.debug("Fetching lecture by content item ID: {}", contentItemId);
+        
+        Lecture entity = lectureRepository.findByContentItem_Id(contentItemId)
+                .filter(l -> !l.isDeleted())
+                .orElseThrow(() -> new ResourceNotFoundException("lecture.notfound"));
+                
+        return lectureMapper.toResponseDto(entity);
     }
 }

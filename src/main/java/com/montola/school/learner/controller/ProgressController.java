@@ -9,7 +9,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 /**
  * Controller for tracking content progress.
@@ -45,5 +47,16 @@ public class ProgressController {
         ContentProgress progress = progressService.submitQuizResult(currentUser.getId(), contentItemId, score);
 
         return ResponseEntity.ok(progress);
+    }
+
+    @GetMapping("/my-progress")
+    public ResponseEntity<List<ContentProgress>> getMyProgress(@AuthenticationPrincipal CustomUserDetails currentUser) {
+        return ResponseEntity.ok(progressService.getStudentProgress(currentUser.getId()));
+    }
+
+    @GetMapping("/student/{studentId}")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
+    public ResponseEntity<List<ContentProgress>> getStudentProgress(@PathVariable Long studentId) {
+        return ResponseEntity.ok(progressService.getStudentProgress(studentId));
     }
 }

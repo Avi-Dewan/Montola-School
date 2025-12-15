@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author avidewan
@@ -14,4 +15,6 @@ import java.util.List;
 public interface LectureRepository extends JpaRepository<Lecture, Long> {
 
     List<Lecture> findByContentItem_Topic_Id(Long topicId);
+
+    Optional<Lecture> findByContentItem_Id(Long contentItemId);
 }

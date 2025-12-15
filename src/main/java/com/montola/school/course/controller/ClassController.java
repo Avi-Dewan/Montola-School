@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -33,6 +34,7 @@ public class ClassController {
 
     @Operation(summary = "Create a new class")
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     public ResponseEntity<ClassResponseDto> createClass(@Valid @RequestBody ClassRequestDto dto) {
         log.info("Creating new class: {}", dto.getName());
         ClassResponseDto createdClass = classService.create(dto);
@@ -67,6 +69,7 @@ public class ClassController {
 
     @Operation(summary = "Update a class")
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     public ResponseEntity<ClassResponseDto> updateClass(@PathVariable Long id, @Valid @RequestBody ClassRequestDto dto) {
         log.info("Updating class with id: {}", id);
         ClassResponseDto updatedClass = classService.update(id, dto);
@@ -76,6 +79,7 @@ public class ClassController {
 
     @Operation(summary = "Delete a class")
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     public ResponseEntity<Void> deleteClass(@PathVariable Long id) {
         log.info("Deleting class with id: {}", id);
         classService.delete(id);

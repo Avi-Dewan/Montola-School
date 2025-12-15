@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -33,6 +34,7 @@ public class SubjectController {
 
     @Operation(summary = "Create a new subject")
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     public ResponseEntity<SubjectResponseDto> createSubject(@Valid @RequestBody SubjectRequestDto dto) {
         log.info("Creating new subject: {}", dto.getName());
         SubjectResponseDto createdSubject = subjectService.create(dto);
@@ -69,6 +71,7 @@ public class SubjectController {
 
     @Operation(summary = "Update a subject")
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     public ResponseEntity<SubjectResponseDto> updateSubject(@PathVariable Long id,
                                                             @Valid @RequestBody SubjectRequestDto dto) {
         log.info("Updating subject with id: {}", id);
@@ -80,6 +83,7 @@ public class SubjectController {
 
     @Operation(summary = "Delete a subject")
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     public ResponseEntity<Void> deleteSubject(@PathVariable Long id) {
         log.info("Deleting subject with id: {}", id);
         subjectService.delete(id);

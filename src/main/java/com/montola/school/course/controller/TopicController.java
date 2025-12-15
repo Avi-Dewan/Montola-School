@@ -3,6 +3,9 @@ package com.montola.school.course.controller;
 import com.montola.school.course.dto.TopicRequestDto;
 import com.montola.school.course.dto.TopicResponseDto;
 import com.montola.school.course.service.TopicService;
+import com.montola.school.course.service.ChapterAuthorizationService;
+import com.montola.school.auth.security.CustomUserDetails;
+import com.montola.school.common.exception.ResourceNotFoundException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -10,6 +13,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,11 +31,21 @@ import java.util.List;
 public class TopicController {
 
     private final TopicService topicService;
+    private final ChapterAuthorizationService authorizationService;
 
     @Operation(summary = "Create a new topic")
     @PostMapping
-    public ResponseEntity<TopicResponseDto> createTopic(@Valid @RequestBody TopicRequestDto dto) {
-        log.info("Creating new topic: {}", dto.getTitle());
+    public ResponseEntity<TopicResponseDto> createTopic(@AuthenticationPrincipal CustomUserDetails currentUser,
+                                                        @Valid @RequestBody TopicRequestDto dto) {
+        log.info("Creating new topic: {} by user {}", dto.getTitle(), currentUser.getId());
+
+        // Check authorization - need chapter ID from request
+        if (!authorizationService.isAdminOrManager(currentUser.getId())) {
+            // For teachers, we need to check if they can edit the parent chapter
+            // This requires the chapterId in the TopicRequestDto
+            throw new AccessDeniedException("Insufficient permissions to create topic");
+        }
+
         TopicResponseDto createdTopic = topicService.create(dto);
         log.info("Topic created with id: {}", createdTopic.getId());
 
@@ -64,8 +79,16 @@ public class TopicController {
 
     @Operation(summary = "Update a topic")
     @PutMapping("/{id}")
-    public ResponseEntity<TopicResponseDto> updateTopic(@PathVariable Long id, @Valid @RequestBody TopicRequestDto dto) {
-        log.info("Updating topic with id: {}", id);
+    public ResponseEntity<TopicResponseDto> updateTopic(@AuthenticationPrincipal CustomUserDetails currentUser,
+                                                        @PathVariable Long id,
+                                                        @Valid @RequestBody TopicRequestDto dto) {
+        log.info("Updating topic with id: {} by user {}", id, currentUser.getId());
+
+        // Check if user can edit this topic
+        if (!authorizationService.canEditTopic(currentUser.getId(), id)) {
+            throw new AccessDeniedException("Insufficient permissions to update this topic");
+        }
+
         TopicResponseDto updatedTopic = topicService.update(id, dto);
         log.info("Topic updated with id: {}", updatedTopic.getId());
 
@@ -74,8 +97,15 @@ public class TopicController {
 
     @Operation(summary = "Delete a topic")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteTopic(@PathVariable Long id) {
-        log.info("Deleting topic with id: {}", id);
+    public ResponseEntity<Void> deleteTopic(@AuthenticationPrincipal CustomUserDetails currentUser,
+                                            @PathVariable Long id) {
+        log.info("Deleting topic with id: {} by user {}", id, currentUser.getId());
+
+        // Check if user can edit this topic
+        if (!authorizationService.canEditTopic(currentUser.getId(), id)) {
+            throw new AccessDeniedException("Insufficient permissions to delete this topic");
+        }
+
         topicService.delete(id);
         log.info("Topic deleted with id: {}", id);
 

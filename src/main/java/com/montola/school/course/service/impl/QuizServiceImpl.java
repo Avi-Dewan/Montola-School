@@ -121,6 +121,18 @@ public class QuizServiceImpl implements QuizService {
         quizRepository.findById(id).ifPresent(entity -> {
             entity.setDeleted(true);
             quizRepository.save(entity);
+            quizRepository.save(entity);
         });
+    }
+
+    @Override
+    public QuizResponseDto getByContentItemId(Long contentItemId) {
+        log.debug("Fetching quiz by content item ID: {}", contentItemId);
+        
+        Quiz entity = quizRepository.findByContentItem_Id(contentItemId)
+                .filter(q -> !q.isDeleted())
+                .orElseThrow(() -> new ResourceNotFoundException("quiz.notfound"));
+                
+        return quizMapper.toResponseDto(entity);
     }
 }

@@ -53,4 +53,12 @@ public interface LectureService {
      * @param id the lecture ID
      */
     void delete(Long id);
+
+    /**
+     * Retrieves a lecture by its associated content item ID.
+     *
+     * @param contentItemId the content item ID
+     * @return the lecture response DTO
+     */
+    LectureResponseDto getByContentItemId(Long contentItemId);
 }

@@ -120,4 +120,15 @@ public class GooglePdfContentServiceImpl implements GooglePdfContentService {
             googlePdfContentRepository.save(entity);
         });
     }
+
+    @Override
+    public GooglePdfContentResponseDto getByContentItemId(Long contentItemId) {
+        log.debug("Fetching Google PDF content by content item ID: {}", contentItemId);
+        
+        GooglePdfContent entity = googlePdfContentRepository.findByContentItem_Id(contentItemId)
+                .filter(g -> !g.isDeleted())
+                .orElseThrow(() -> new ResourceNotFoundException("google.pdf.content.notfound"));
+
+        return googlePdfContentMapper.toResponseDto(entity);
+    }
 }

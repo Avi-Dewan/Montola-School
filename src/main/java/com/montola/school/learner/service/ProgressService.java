@@ -1,6 +1,7 @@
 package com.montola.school.learner.service;
 
 import com.montola.school.learner.model.ContentProgress;
+import java.util.List;
 
 /**
  * Service for tracking student progress.
@@ -28,4 +29,12 @@ public interface ProgressService {
      * @return The updated ContentProgress
      */
     ContentProgress submitQuizResult(Long userId, Long contentItemId, Double score);
+
+    /**
+     * Retrieves all progress records for a specific user.
+     *
+     * @param userId the user ID
+     * @return list of progress records
+     */
+    List<ContentProgress> getStudentProgress(Long userId);
 }

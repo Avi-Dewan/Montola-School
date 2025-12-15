@@ -54,4 +54,21 @@ public interface ChapterService {
      * @param id the chapter ID
      */
     void delete(Long id);
+
+    /**
+     * Assign a teacher to a chapter.
+     *
+     * @param chapterId the chapter ID
+     * @param teacherId the teacher user ID
+     * @param assignedBy the user ID who is assigning
+     */
+    void assignTeacher(Long chapterId, Long teacherId, Long assignedBy);
+
+    /**
+     * Unassign a teacher from a chapter.
+     *
+     * @param chapterId the chapter ID
+     * @param teacherId the teacher user ID
+     */
+    void unassignTeacher(Long chapterId, Long teacherId);
 }

@@ -42,6 +42,13 @@ public class CourseStructureServiceImpl implements CourseStructureService {
     private final TopicRepository topicRepository;
     private final ContentItemRepository contentItemRepository;
     private final EnrollmentRepository enrollmentRepository;
+    
+    // Helper to check if current user is a student
+    private boolean isStudent() {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_STUDENT"));
+    }
 
     @Override
     public ClassStructureResponseDto getClassStructure(Long classId) {
@@ -64,8 +71,10 @@ public class CourseStructureServiceImpl implements CourseStructureService {
         List<Long> subjectIds = subjects.stream().map(Subject::getId).collect(Collectors.toList());
 
         // 3. Fetch Chapters
+        boolean isStudent = isStudent();
         List<Chapter> chapters = chapterRepository.findBySubjectIdIn(subjectIds).stream()
                 .filter(c -> !c.isDeleted())
+                .filter(c -> !isStudent || c.getStatus() == com.montola.school.course.enums.ChapterStatus.PUBLISHED)
                 .collect(Collectors.toList());
 
         List<Long> chapterIds = chapters.stream().map(Chapter::getId).collect(Collectors.toList());
@@ -126,8 +135,10 @@ public class CourseStructureServiceImpl implements CourseStructureService {
                 .orElseThrow(() -> new ResourceNotFoundException("subject.notfound"));
 
         // 2. Fetch Chapters and below
+        boolean isStudent = isStudent();
         List<Chapter> chapters = chapterRepository.findBySubjectIdIn(Collections.singletonList(subjectId)).stream()
                 .filter(c -> !c.isDeleted())
+                .filter(c -> !isStudent || c.getStatus() == com.montola.school.course.enums.ChapterStatus.PUBLISHED)
                 .collect(Collectors.toList());
 
         List<Long> chapterIds = chapters.stream().map(Chapter::getId).collect(Collectors.toList());
@@ -179,8 +190,10 @@ public class CourseStructureServiceImpl implements CourseStructureService {
         log.info("Fetching full structure for chapter ID: {}", chapterId);
 
         // 1. Fetch Chapter
+        boolean isStudent = isStudent();
         Chapter chapter = chapterRepository.findById(chapterId)
                 .filter(c -> !c.isDeleted())
+                .filter(c -> !isStudent || c.getStatus() == com.montola.school.course.enums.ChapterStatus.PUBLISHED)
                 .orElseThrow(() -> new ResourceNotFoundException("chapter.notfound"));
 
         // 2. Fetch Topics and below

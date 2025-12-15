@@ -53,4 +53,12 @@ public interface GooglePdfContentService {
      * @param id the Google PDF content ID
      */
     void delete(Long id);
+
+    /**
+     * Retrieves a Google PDF content by its associated content item ID.
+     *
+     * @param contentItemId the content item ID
+     * @return the Google PDF content response DTO
+     */
+    GooglePdfContentResponseDto getByContentItemId(Long contentItemId);
 }

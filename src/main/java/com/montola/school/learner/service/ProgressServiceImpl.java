@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * Implementation of ProgressService.
@@ -55,6 +56,12 @@ public class ProgressServiceImpl implements ProgressService {
         progress.setCompleted(true); // Assuming taking the quiz marks it as "done" attempt-wise.
 
         return progressRepository.save(progress);
+    }
+
+    @Override
+    public List<ContentProgress> getStudentProgress(Long userId) {
+        log.debug("Fetching progress for user: {}", userId);
+        return progressRepository.findByUserId(userId);
     }
 
     private ContentProgress getOrCreateProgress(Long userId, Long contentItemId) {

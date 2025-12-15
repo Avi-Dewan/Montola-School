@@ -53,4 +53,12 @@ public interface QuizService {
      * @param id the quiz ID
      */
     void delete(Long id);
+
+    /**
+     * Retrieves a quiz by its associated content item ID.
+     *
+     * @param contentItemId the content item ID
+     * @return the quiz response DTO
+     */
+    QuizResponseDto getByContentItemId(Long contentItemId);
 }
