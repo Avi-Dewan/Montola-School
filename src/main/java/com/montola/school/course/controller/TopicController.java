@@ -69,10 +69,12 @@ public class TopicController {
         return topicService.getById(id)
                 .map(topicDto -> {
                     log.debug("Topic found with id {}", id);
+
                     return ResponseEntity.ok(topicDto);
                 })
                 .orElseGet(() -> {
                     log.warn("Topic not found with id {}", id);
+
                     return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
                 });
     }

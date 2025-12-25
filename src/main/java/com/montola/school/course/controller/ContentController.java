@@ -84,6 +84,7 @@ public class ContentController {
                                             @PathVariable Long id) {
         log.info("User {} requesting content {}", currentUser.getId(), id);
         Object content = contentAccessService.getContentById(id, currentUser.getId());
+
         return ResponseEntity.ok(content);
     }
 }

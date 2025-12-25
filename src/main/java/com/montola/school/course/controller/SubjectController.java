@@ -61,10 +61,12 @@ public class SubjectController {
         return subjectService.getById(id)
                 .map(subjectDto -> {
                     log.debug("Subject found with id {}", id);
+
                     return ResponseEntity.ok(subjectDto);
                 })
                 .orElseGet(() -> {
                     log.warn("Subject not found with id {}", id);
+
                     return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
                 });
     }

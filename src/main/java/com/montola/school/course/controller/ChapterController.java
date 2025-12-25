@@ -49,6 +49,7 @@ public class ChapterController {
 
     @Operation(summary = "Get all chapters")
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     public ResponseEntity<List<ChapterResponseDto>> getAllChapters() {
         log.info("Fetching all chapters");
         List<ChapterResponseDto> chapters = chapterService.getAll();
@@ -65,10 +66,12 @@ public class ChapterController {
         return chapterService.getById(id)
                 .map(chapterDto -> {
                     log.debug("Chapter found with id {}", id);
+
                     return ResponseEntity.ok(chapterDto);
                 })
                 .orElseGet(() -> {
                     log.warn("Chapter not found with id {}", id);
+
                     return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
                 });
     }
@@ -110,6 +113,7 @@ public class ChapterController {
                                                @AuthenticationPrincipal CustomUserDetails currentUser) {
         log.info("Assigning teacher {} to chapter {} by user {}", teacherId, chapterId, currentUser.getId());
         chapterService.assignTeacher(chapterId, teacherId, currentUser.getId());
+
         return ResponseEntity.ok().build();
     }
 
@@ -120,6 +124,7 @@ public class ChapterController {
                                                  @PathVariable Long teacherId) {
         log.info("Unassigning teacher {} from chapter {}", teacherId, chapterId);
         chapterService.unassignTeacher(chapterId, teacherId);
+
         return ResponseEntity.noContent().build();
     }
 }

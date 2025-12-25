@@ -49,6 +49,7 @@ public class ClassController {
         log.info("Fetching all classes");
         List<ClassResponseDto> classes = classService.getAll();
         log.debug("Total classes found: {}", classes.size());
+
         return ResponseEntity.ok(classes);
     }
 
@@ -56,13 +57,16 @@ public class ClassController {
     @GetMapping("/{id}")
     public ResponseEntity<ClassResponseDto> getClassById(@PathVariable Long id) {
         log.info("Fetching class by id: {}", id);
+
         return classService.getById(id)
                 .map(classDto -> {
                     log.debug("Class found with id {}", id);
+
                     return ResponseEntity.ok(classDto);
                 })
                 .orElseGet(() -> {
                     log.warn("Class not found with id {}", id);
+
                     return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
                 });
     }
@@ -74,6 +78,7 @@ public class ClassController {
         log.info("Updating class with id: {}", id);
         ClassResponseDto updatedClass = classService.update(id, dto);
         log.info("Class updated with id: {}", updatedClass.getId());
+
         return ResponseEntity.ok(updatedClass);
     }
 
@@ -84,6 +89,7 @@ public class ClassController {
         log.info("Deleting class with id: {}", id);
         classService.delete(id);
         log.info("Class deleted with id: {}", id);
+
         return ResponseEntity.noContent().build();
     }
 
