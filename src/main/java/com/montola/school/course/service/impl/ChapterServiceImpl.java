@@ -59,6 +59,8 @@ public class ChapterServiceImpl implements ChapterService {
             chapter.setStatus(com.montola.school.course.enums.ChapterStatus.DRAFT);
         }
 
+        chapter.setCreatedBy(); // need to set current logged in man
+
         return chapterMapper.toResponseDto(chapterRepository.save(chapter));
     }
 

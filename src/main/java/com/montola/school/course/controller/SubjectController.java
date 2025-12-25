@@ -45,6 +45,7 @@ public class SubjectController {
 
     @Operation(summary = "Get all subjects")
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     public ResponseEntity<List<SubjectResponseDto>> getAllSubjects() {
         log.info("Fetching all subjects");
         List<SubjectResponseDto> subjects = subjectService.getAll();
@@ -77,7 +78,7 @@ public class SubjectController {
     public ResponseEntity<SubjectResponseDto> updateSubject(@PathVariable Long id,
                                                             @Valid @RequestBody SubjectRequestDto dto) {
         log.info("Updating subject with id: {}", id);
-        SubjectResponseDto updatedSubject = subjectService.update(id, dto);
+        SubjectResponseDto updatedSubject = subjectService.update(id, dto); // TODO: Patch
         log.info("Subject updated with id: {}", updatedSubject.getId());
 
         return ResponseEntity.ok(updatedSubject);

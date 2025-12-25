@@ -6,8 +6,10 @@ import lombok.Data;
 
 @Data
 public class ClassRequestDto {
+
     @NotBlank
     @Size(max = 100)
     private String name;
+
     private String description;
 }

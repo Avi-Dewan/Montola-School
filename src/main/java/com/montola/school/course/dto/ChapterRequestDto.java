@@ -8,12 +8,18 @@ import lombok.Data;
 
 @Data
 public class ChapterRequestDto {
+
     @NotNull
     private Long subjectId;
+
     @NotBlank
     @Size(max = 200)
+
     private String title;
+
     private String description;
+
     private ChapterStatus status;
+
     private int orderIndex;
 }

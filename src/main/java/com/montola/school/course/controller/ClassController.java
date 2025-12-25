@@ -76,7 +76,7 @@ public class ClassController {
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     public ResponseEntity<ClassResponseDto> updateClass(@PathVariable Long id, @Valid @RequestBody ClassRequestDto dto) {
         log.info("Updating class with id: {}", id);
-        ClassResponseDto updatedClass = classService.update(id, dto);
+        ClassResponseDto updatedClass = classService.update(id, dto); // TODO: Change it to potch in future
         log.info("Class updated with id: {}", updatedClass.getId());
 
         return ResponseEntity.ok(updatedClass);
