@@ -11,6 +11,8 @@ import org.mapstruct.Mapper;
  */
 @Mapper(componentModel = "spring")
 public interface ChapterMapper {
+
     Chapter toEntity(ChapterRequestDto dto);
+
     ChapterResponseDto toResponseDto(Chapter entity);
 }

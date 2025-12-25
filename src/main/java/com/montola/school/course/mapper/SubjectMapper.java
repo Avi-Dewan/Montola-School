@@ -11,6 +11,8 @@ import org.mapstruct.Mapper;
  */
 @Mapper(componentModel = "spring")
 public interface SubjectMapper {
+
     Subject toEntity(SubjectRequestDto dto);
+
     SubjectResponseDto toResponseDto(Subject entity);
 }

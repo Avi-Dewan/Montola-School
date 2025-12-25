@@ -1,19 +1,22 @@
 package com.montola.school.course.service.impl;
 
+import com.montola.school.auth.security.CustomUserDetails;
 import com.montola.school.course.dto.ChapterRequestDto;
 import com.montola.school.course.dto.ChapterResponseDto;
 import com.montola.school.course.mapper.ChapterMapper;
 import com.montola.school.course.model.Chapter;
 import com.montola.school.course.repository.ChapterRepository;
 import com.montola.school.course.repository.SubjectRepository;
+import com.montola.school.course.repository.TopicRepository;
+import com.montola.school.course.service.ChapterAuthorizationService;
 import com.montola.school.course.service.ChapterService;
 import com.montola.school.common.exception.ResourceNotFoundException;
 import com.montola.school.course.model.ChapterTeacher;
 import com.montola.school.course.repository.ChapterTeacherRepository;
-import com.montola.school.auth.repository.UserRepository;
+import com.montola.school.auth.service.UserService;
 import com.montola.school.auth.model.User;
-import com.montola.school.auth.enums.Role;
 import com.montola.school.course.enums.ChapterStatus;
+import com.montola.school.course.service.TopicService;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.Authentication;
 import lombok.RequiredArgsConstructor;
@@ -40,11 +43,13 @@ public class ChapterServiceImpl implements ChapterService {
 
     private final ChapterRepository chapterRepository;
     private final SubjectRepository subjectRepository;
-    private final com.montola.school.course.repository.TopicRepository topicRepository;
+    private final TopicRepository topicRepository;
     private final ChapterMapper chapterMapper;
-    private final com.montola.school.course.service.TopicService topicService;
+    private final TopicService topicService;
     private final ChapterTeacherRepository chapterTeacherRepository;
-    private final UserRepository userRepository;
+
+    private ChapterAuthorizationService chapterAuthorizationService;
+    private final UserService userService;
 
     @Override
     @Transactional
@@ -59,7 +64,8 @@ public class ChapterServiceImpl implements ChapterService {
             chapter.setStatus(com.montola.school.course.enums.ChapterStatus.DRAFT);
         }
 
-        chapter.setCreatedBy(); // need to set current logged in man
+        // Set the creator from the current security context
+        chapter.setCreatedBy(userService.getCurrentUser());
 
         return chapterMapper.toResponseDto(chapterRepository.save(chapter));
     }
@@ -68,22 +74,19 @@ public class ChapterServiceImpl implements ChapterService {
     public List<ChapterResponseDto> getAll() {
         log.debug("Fetching all active chapters");
 
-        // Get current user from security context
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        boolean isStudent = authentication != null &&
-                authentication.getAuthorities().stream()
-                        .anyMatch(auth -> auth.getAuthority().equals("ROLE_STUDENT"));
+        User user = userService.getCurrentUser();
 
         return chapterRepository.findAll()
                 .stream()
                 .filter(c -> !c.isDeleted())
                 .filter(c -> {
-                    // Students only see PUBLISHED chapters
-                    if (isStudent) {
-                        return c.getStatus() == ChapterStatus.PUBLISHED;
-                    }
                     // ADMIN/MANAGER/TEACHER see all
-                    return true;
+                    if (user.isAdminOrManager() || user.isTeacher()) {
+                        return true;
+                    }
+
+                    // Students only see PUBLISHED chapters
+                    return c.getStatus() == ChapterStatus.PUBLISHED;
                 })
                 .map(chapterMapper::toResponseDto)
                 .collect(Collectors.toList());
@@ -92,6 +95,7 @@ public class ChapterServiceImpl implements ChapterService {
     @Override
     public Optional<ChapterResponseDto> getById(Long id) {
         log.debug("Fetching chapter by ID: {}", id);
+
         return chapterRepository.findById(id)
                 .filter(c -> !c.isDeleted())
                 .map(chapterMapper::toResponseDto);
@@ -101,12 +105,14 @@ public class ChapterServiceImpl implements ChapterService {
     @Transactional
     public ChapterResponseDto update(Long id, ChapterRequestDto dto) {
         log.info("Updating chapter with ID: {}", id);
+
         return chapterRepository.findById(id)
                 .map(existing -> {
                     existing.setTitle(dto.getTitle());
                     existing.setDescription(dto.getDescription());
                     existing.setStatus(dto.getStatus());
                     existing.setOrderIndex(dto.getOrderIndex());
+
                     return chapterMapper.toResponseDto(chapterRepository.save(existing));
                 })
                 .orElseThrow(() -> {
@@ -138,10 +144,10 @@ public class ChapterServiceImpl implements ChapterService {
         Chapter chapter = chapterRepository.findById(chapterId)
                 .orElseThrow(() -> new ResourceNotFoundException("chapter.notfound"));
 
-        User teacher = userRepository.findById(teacherId)
+        User teacher = userService.findById(teacherId)
                 .orElseThrow(() -> new ResourceNotFoundException("auth.user.notfound"));
 
-        User assigner = userRepository.findById(assignedBy)
+        User assigner = userService.findById(assignedBy)
                 .orElseThrow(() -> new ResourceNotFoundException("auth.user.notfound"));
 
         // Check if already assigned

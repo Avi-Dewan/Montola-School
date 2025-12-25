@@ -5,6 +5,7 @@ import com.montola.school.auth.dto.ResetPasswordRequest;
 import com.montola.school.auth.dto.UserRegisterRequest;
 import com.montola.school.auth.enums.Role;
 import com.montola.school.auth.model.User;
+import com.montola.school.auth.security.CustomUserDetails;
 
 import java.util.List;
 import java.util.Optional;
@@ -129,4 +130,21 @@ public interface UserService {
      * @return a list of all users.
      */
     List<User> findAll();
+
+    /**
+     * Retrieves the currently authenticated user's details from the security context.
+     *
+     * @return the current {@link CustomUserDetails}.
+     * @throws IllegalStateException if the user is not authenticated.
+     */
+    CustomUserDetails getCurrentUserDetails();
+
+    /**
+     * Retrieves the currently authenticated {@link User} entity from the database.
+     *
+     * @return the current {@link User} entity.
+     * @throws com.montola.school.common.exception.ResourceNotFoundException if the user cannot be found.
+     * @throws IllegalStateException if the user is not authenticated.
+     */
+    User getCurrentUser();
 }

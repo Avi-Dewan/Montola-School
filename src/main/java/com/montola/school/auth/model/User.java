@@ -11,6 +11,8 @@ import lombok.Setter;
 
 import java.util.Set;
 
+import static com.montola.school.auth.enums.Role.*;
+
 /**
  * @author avidewan
  * @date 8/27/25
@@ -45,4 +47,16 @@ public class User extends Persistent {
     @Column(name = "role", length = 50)
     @NotEmpty
     private Set<Role> roles;
+
+    public boolean isAdminOrManager() {
+        return roles.contains(ADMIN) || roles.contains(MANAGER);
+    }
+
+    public boolean isTeacher() {
+        return roles.contains(TEACHER);
+    }
+
+    public boolean isStudent() {
+        return roles.contains(STUDENT);
+    }
 }

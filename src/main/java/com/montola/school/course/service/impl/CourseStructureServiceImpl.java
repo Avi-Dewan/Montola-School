@@ -1,5 +1,8 @@
 package com.montola.school.course.service.impl;
 
+import com.montola.school.auth.model.User;
+import com.montola.school.auth.repository.UserRepository;
+import com.montola.school.auth.service.UserService;
 import com.montola.school.common.exception.ResourceNotFoundException;
 import com.montola.school.course.dto.structure.*;
 import com.montola.school.course.model.Chapter;
@@ -26,6 +29,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static com.montola.school.course.enums.ChapterStatus.PUBLISHED;
+
 /**
  * @author avidewan
  * @date 12/12/25
@@ -42,13 +47,8 @@ public class CourseStructureServiceImpl implements CourseStructureService {
     private final TopicRepository topicRepository;
     private final ContentItemRepository contentItemRepository;
     private final EnrollmentRepository enrollmentRepository;
-    
-    // Helper to check if current user is a student
-    private boolean isStudent() {
-        var authentication = SecurityContextHolder.getContext().getAuthentication();
-        return authentication != null && authentication.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_STUDENT"));
-    }
+
+    private final UserService userService;
 
     @Override
     public ClassStructureResponseDto getClassStructure(Long classId) {
@@ -71,10 +71,9 @@ public class CourseStructureServiceImpl implements CourseStructureService {
         List<Long> subjectIds = subjects.stream().map(Subject::getId).collect(Collectors.toList());
 
         // 3. Fetch Chapters
-        boolean isStudent = isStudent();
         List<Chapter> chapters = chapterRepository.findBySubjectIdIn(subjectIds).stream()
                 .filter(c -> !c.isDeleted())
-                .filter(c -> !isStudent || c.getStatus() == com.montola.school.course.enums.ChapterStatus.PUBLISHED)
+                .filter(c -> isAdminOrManagerOrTeacher() || c.getStatus() == PUBLISHED)
                 .collect(Collectors.toList());
 
         List<Long> chapterIds = chapters.stream().map(Chapter::getId).collect(Collectors.toList());
@@ -135,10 +134,9 @@ public class CourseStructureServiceImpl implements CourseStructureService {
                 .orElseThrow(() -> new ResourceNotFoundException("subject.notfound"));
 
         // 2. Fetch Chapters and below
-        boolean isStudent = isStudent();
         List<Chapter> chapters = chapterRepository.findBySubjectIdIn(Collections.singletonList(subjectId)).stream()
                 .filter(c -> !c.isDeleted())
-                .filter(c -> !isStudent || c.getStatus() == com.montola.school.course.enums.ChapterStatus.PUBLISHED)
+                .filter(c -> isAdminOrManagerOrTeacher() || c.getStatus() == PUBLISHED)
                 .collect(Collectors.toList());
 
         List<Long> chapterIds = chapters.stream().map(Chapter::getId).collect(Collectors.toList());
@@ -190,10 +188,10 @@ public class CourseStructureServiceImpl implements CourseStructureService {
         log.info("Fetching full structure for chapter ID: {}", chapterId);
 
         // 1. Fetch Chapter
-        boolean isStudent = isStudent();
+
         Chapter chapter = chapterRepository.findById(chapterId)
                 .filter(c -> !c.isDeleted())
-                .filter(c -> !isStudent || c.getStatus() == com.montola.school.course.enums.ChapterStatus.PUBLISHED)
+                .filter(c -> isAdminOrManagerOrTeacher() || c.getStatus() == PUBLISHED)
                 .orElseThrow(() -> new ResourceNotFoundException("chapter.notfound"));
 
         // 2. Fetch Topics and below
@@ -294,5 +292,11 @@ public class CourseStructureServiceImpl implements CourseStructureService {
         }
 
         return null;
+    }
+
+    private boolean isAdminOrManagerOrTeacher() {
+        User user = userService.getCurrentUser();
+
+        return user.isAdminOrManager() || user.isTeacher();
     }
 }
