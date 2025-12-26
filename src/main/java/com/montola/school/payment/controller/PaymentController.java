@@ -29,7 +29,6 @@ public class PaymentController {
     private final PaymentService paymentService;
 
     // --- Student Endpoints ---
-
     @PostMapping("/submit")
     public ResponseEntity<PaymentResponseDto> submitPayment(@AuthenticationPrincipal CustomUserDetails currentUser,
                                                             @RequestBody PaymentRequestDto request) {

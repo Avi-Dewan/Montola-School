@@ -150,6 +150,11 @@ public class ChapterServiceImpl implements ChapterService {
         User assigner = userService.findById(assignedBy)
                 .orElseThrow(() -> new ResourceNotFoundException("auth.user.notfound"));
 
+        if (!teacher.isTeacher()) {
+            log.warn("User {} is not a teacher", teacherId);
+            return;
+        }
+
         // Check if already assigned
         if (chapterTeacherRepository.existsByChapterIdAndTeacherId(chapterId, teacherId)) {
             log.warn("Teacher {} already assigned to chapter {}", teacherId, chapterId);

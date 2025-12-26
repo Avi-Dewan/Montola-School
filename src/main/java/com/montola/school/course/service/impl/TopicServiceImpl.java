@@ -43,8 +43,10 @@ public class TopicServiceImpl implements TopicService {
     public TopicResponseDto create(TopicRequestDto dto) {
         log.info("Creating new topic: {}", dto.getTitle());
         Topic topic = topicMapper.toEntity(dto);
+
         topic.setChapter(chapterRepository.findById(dto.getChapterId())
                 .orElseThrow(() -> new ResourceNotFoundException("chapter.notfound")));
+
         return topicMapper.toResponseDto(topicRepository.save(topic));
     }
 

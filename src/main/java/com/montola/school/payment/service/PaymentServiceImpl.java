@@ -47,6 +47,9 @@ public class PaymentServiceImpl implements PaymentService {
         Chapter chapter = chapterRepository.findById(request.getChapterId())
                 .orElseThrow(() -> new ResourceNotFoundException("course.chapter.notfound"));
 
+        // See if user submitted already for this transaction and gracefully delete and replace
+        // or do something -> Soft delete ?
+
         Payment payment = new Payment();
         payment.setUser(user);
         payment.setChapter(chapter);

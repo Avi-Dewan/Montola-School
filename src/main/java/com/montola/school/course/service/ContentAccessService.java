@@ -20,7 +20,8 @@ public interface ContentAccessService {
      * @param userId the user ID requesting access
      * @return content DTO (type depends on content type)
      */
-    Object getContentById(Long contentItemId, Long userId);
+
+    Object getContentById(Long contentItemId, Long userId, boolean isAdminOrManagerOrTeacher);
 
     /**
      * Get lecture content by content item ID.

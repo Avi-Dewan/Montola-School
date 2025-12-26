@@ -59,4 +59,8 @@ public class User extends Persistent {
     public boolean isStudent() {
         return roles.contains(STUDENT);
     }
+
+    public boolean isAdminOrManagerOrTeacher() {
+        return isAdminOrManager() || isTeacher();
+    }
 }

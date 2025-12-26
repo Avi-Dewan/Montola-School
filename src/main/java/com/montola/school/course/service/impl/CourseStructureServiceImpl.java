@@ -51,7 +51,7 @@ public class CourseStructureServiceImpl implements CourseStructureService {
     private final UserService userService;
 
     @Override
-    public ClassStructureResponseDto getClassStructure(Long classId) {
+    public ClassStructureResponseDto getClassStructure(Long classId) { // Maybe public.. Let's keep two. One is for admin and another is for public view.
         log.info("Fetching full course structure for class ID: {}", classId);
 
         // 1. Fetch Class
@@ -70,10 +70,12 @@ public class CourseStructureServiceImpl implements CourseStructureService {
 
         List<Long> subjectIds = subjects.stream().map(Subject::getId).collect(Collectors.toList());
 
+        User currentUser = userService.getCurrentUser();
+
         // 3. Fetch Chapters
         List<Chapter> chapters = chapterRepository.findBySubjectIdIn(subjectIds).stream()
                 .filter(c -> !c.isDeleted())
-                .filter(c -> isAdminOrManagerOrTeacher() || c.getStatus() == PUBLISHED)
+                .filter(c -> currentUser.isAdminOrManagerOrTeacher() || c.getStatus() == PUBLISHED)
                 .collect(Collectors.toList());
 
         List<Long> chapterIds = chapters.stream().map(Chapter::getId).collect(Collectors.toList());
@@ -128,6 +130,8 @@ public class CourseStructureServiceImpl implements CourseStructureService {
     public SubjectStructureResponseDto getSubjectStructure(Long subjectId) {
         log.info("Fetching full structure for subject ID: {}", subjectId);
 
+        User currentUser = userService.getCurrentUser();
+
         // 1. Fetch Subject
         Subject subject = subjectRepository.findById(subjectId)
                 .filter(s -> !s.isDeleted())
@@ -136,7 +140,7 @@ public class CourseStructureServiceImpl implements CourseStructureService {
         // 2. Fetch Chapters and below
         List<Chapter> chapters = chapterRepository.findBySubjectIdIn(Collections.singletonList(subjectId)).stream()
                 .filter(c -> !c.isDeleted())
-                .filter(c -> isAdminOrManagerOrTeacher() || c.getStatus() == PUBLISHED)
+                .filter(c -> currentUser.isAdminOrManagerOrTeacher() || c.getStatus() == PUBLISHED)
                 .collect(Collectors.toList());
 
         List<Long> chapterIds = chapters.stream().map(Chapter::getId).collect(Collectors.toList());
@@ -187,11 +191,12 @@ public class CourseStructureServiceImpl implements CourseStructureService {
     public ChapterStructureResponseDto getChapterStructure(Long chapterId) {
         log.info("Fetching full structure for chapter ID: {}", chapterId);
 
-        // 1. Fetch Chapter
+        User currentUser = userService.getCurrentUser();
 
+        // 1. Fetch Chapter
         Chapter chapter = chapterRepository.findById(chapterId)
                 .filter(c -> !c.isDeleted())
-                .filter(c -> isAdminOrManagerOrTeacher() || c.getStatus() == PUBLISHED)
+                .filter(c -> currentUser.isAdminOrManagerOrTeacher() || c.getStatus() == PUBLISHED)
                 .orElseThrow(() -> new ResourceNotFoundException("chapter.notfound"));
 
         // 2. Fetch Topics and below
@@ -208,17 +213,11 @@ public class CourseStructureServiceImpl implements CourseStructureService {
                     .collect(Collectors.toList());
         }
 
-        // Check Enrollment Status (Access Control)
-        Long currentUserId = getCurrentUserId();
-        boolean isEnrolled = false;
-        if (currentUserId != null) {
-            isEnrolled = enrollmentRepository.existsByUserIdAndChapterId(currentUserId, chapterId);
-        }
-
-        // If not enrolled, Hide Content Items
-        if (!isEnrolled) {
+        // Check Enrollment Status (Access Control). If not enrolled, Hide Content Items
+        if (!(currentUser.isAdminOrManagerOrTeacher() ||
+                enrollmentRepository.existsByUserIdAndChapterId(currentUser.getId(), chapterId))) {
             contentItems = Collections.emptyList();
-            log.info("Chapter {} not enrolled by user {}. Hiding content items.", chapterId, currentUserId);
+            log.info("Chapter {} not enrolled by user {}. Hiding content items.", chapterId, currentUser.getId());
         }
 
         // 3. Assemble
@@ -294,8 +293,7 @@ public class CourseStructureServiceImpl implements CourseStructureService {
         return null;
     }
 
-    private boolean isAdminOrManagerOrTeacher() {
-        User user = userService.getCurrentUser();
+    private boolean isAdminOrManagerOrTeacher(User user) {
 
         return user.isAdminOrManager() || user.isTeacher();
     }

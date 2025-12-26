@@ -80,7 +80,7 @@ public class ChapterController {
     @PutMapping("/{id}")
     public ResponseEntity<ChapterResponseDto> updateChapter(@PathVariable Long id, @Valid @RequestBody ChapterRequestDto dto) {
         log.info("Updating chapter with id: {}", id);
-        ChapterResponseDto updatedChapter = chapterService.update(id, dto);
+        ChapterResponseDto updatedChapter = chapterService.update(id, dto); //TODO: Change ut to patch . System design maybe we should remove status from here. Have a separate method to change the status
         log.info("Chapter updated with id: {}", updatedChapter.getId());
 
         return ResponseEntity.ok(updatedChapter);

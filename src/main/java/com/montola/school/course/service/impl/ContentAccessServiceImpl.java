@@ -37,7 +37,7 @@ public class ContentAccessServiceImpl implements ContentAccessService {
     private final GooglePdfContentService pdfService;
 
     @Override
-    public Object getContentById(Long contentItemId, Long userId) {
+    public Object getContentById(Long contentItemId, Long userId, boolean isAdminOrManagerOrTeacher) {
         log.info("User {} requesting access to content {}", userId, contentItemId);
 
         // Get content item
@@ -47,9 +47,7 @@ public class ContentAccessServiceImpl implements ContentAccessService {
         // Get chapter ID from content item hierarchy
         Long chapterId = contentItem.getTopic().getChapter().getId();
 
-        // Check enrollment
-        boolean isEnrolled = enrollmentRepository.existsByUserIdAndChapterId(userId, chapterId);
-        if (!isEnrolled) {
+        if (!isAdminOrManagerOrTeacher && !enrollmentRepository.existsByUserIdAndChapterId(userId, chapterId)) {
             log.warn("User {} not enrolled in chapter {} for content {}", userId, chapterId, contentItemId);
             throw new AccessDeniedException("You must purchase this chapter to access this content");
         }

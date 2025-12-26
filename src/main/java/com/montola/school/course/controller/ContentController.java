@@ -1,5 +1,7 @@
 package com.montola.school.course.controller;
 
+import com.montola.school.auth.model.User;
+import com.montola.school.auth.service.UserService;
 import com.montola.school.course.dto.GooglePdfContentRequestDto;
 import com.montola.school.course.dto.LectureRequestDto;
 import com.montola.school.course.dto.QuizRequestDto;
@@ -36,6 +38,7 @@ public class ContentController {
     private final GooglePdfContentService googlePdfContentService;
     private final ChapterAuthorizationService authorizationService;
     private final ContentAccessService contentAccessService;
+    private final UserService userService;
 
     @Operation(summary = "Create a new lecture")
     @PostMapping("/lecture")
@@ -43,9 +46,8 @@ public class ContentController {
                                            @RequestBody LectureRequestDto dto) {
         log.info("Creating new lecture by user {}", currentUser.getId());
 
-        // Authorization check will be done in service layer based on content item's parent chapter
-        // For now, only ADMIN/MANAGER can create content
-        if (!authorizationService.isAdminOrManager(currentUser.getId())) {
+        // Authorization check to check can edit topic of the content
+        if (!authorizationService.canEditTopic(currentUser.getId(), dto.getTopicId())) {
             throw new AccessDeniedException("Insufficient permissions to create lecture");
         }
 
@@ -58,8 +60,9 @@ public class ContentController {
                                         @RequestBody QuizRequestDto dto) {
         log.info("Creating new quiz by user {}", currentUser.getId());
 
-        if (!authorizationService.isAdminOrManager(currentUser.getId())) {
-            throw new AccessDeniedException("Insufficient permissions to create quiz");
+        // Authorization check to check can edit topic of the content
+        if (!authorizationService.canEditTopic(currentUser.getId(), dto.getTopicId())) {
+            throw new AccessDeniedException("Insufficient permissions to create lecture");
         }
 
         return ResponseEntity.status(HttpStatus.CREATED).body(quizService.create(dto));
@@ -71,8 +74,9 @@ public class ContentController {
                                                     @RequestBody GooglePdfContentRequestDto dto) {
         log.info("Creating new Google PDF content by user {}", currentUser.getId());
 
-        if (!authorizationService.isAdminOrManager(currentUser.getId())) {
-            throw new AccessDeniedException("Insufficient permissions to create PDF content");
+        // Authorization check to check can edit topic of the content
+        if (!authorizationService.canEditTopic(currentUser.getId(), dto.getTopicId())) {
+            throw new AccessDeniedException("Insufficient permissions to create lecture");
         }
 
         return ResponseEntity.status(HttpStatus.CREATED).body(googlePdfContentService.create(dto));
@@ -80,10 +84,11 @@ public class ContentController {
 
     @Operation(summary = "Get content by ID (with enrollment check)")
     @GetMapping("/{id}")
-    public ResponseEntity<?> getContentById(@AuthenticationPrincipal CustomUserDetails currentUser,
-                                            @PathVariable Long id) {
+    public ResponseEntity<?> getContentById(@PathVariable Long id) {
+        User currentUser = userService.getCurrentUser();
         log.info("User {} requesting content {}", currentUser.getId(), id);
-        Object content = contentAccessService.getContentById(id, currentUser.getId());
+
+        Object content = contentAccessService.getContentById(id, currentUser.getId(), currentUser.isAdminOrManagerOrTeacher());
 
         return ResponseEntity.ok(content);
     }

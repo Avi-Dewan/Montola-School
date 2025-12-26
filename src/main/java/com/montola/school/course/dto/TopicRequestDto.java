@@ -7,11 +7,15 @@ import lombok.Data;
 
 @Data
 public class TopicRequestDto {
+
     @NotNull
     private Long chapterId;
+
     @NotBlank
     @Size(max = 200)
     private String title;
+
     private String description;
+
     private int orderIndex;
 }

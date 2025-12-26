@@ -40,9 +40,7 @@ public class TopicController {
         log.info("Creating new topic: {} by user {}", dto.getTitle(), currentUser.getId());
 
         // Check authorization - need chapter ID from request
-        if (!authorizationService.isAdminOrManager(currentUser.getId())) {
-            // For teachers, we need to check if they can edit the parent chapter
-            // This requires the chapterId in the TopicRequestDto
+        if (!authorizationService.canEditChapter(currentUser.getId(), dto.getChapterId())) {
             throw new AccessDeniedException("Insufficient permissions to create topic");
         }
 
