@@ -2,6 +2,7 @@ package com.montola.school.course.service;
 
 import com.montola.school.course.dto.ChapterRequestDto;
 import com.montola.school.course.dto.ChapterResponseDto;
+import com.montola.school.course.enums.ChapterStatus;
 
 import java.util.List;
 import java.util.Optional;
@@ -71,4 +72,22 @@ public interface ChapterService {
      * @param teacherId the teacher user ID
      */
     void unassignTeacher(Long chapterId, Long teacherId);
+
+    /**
+     * Updates the status of a chapter.
+     *
+     * @param id the chapter ID
+     * @param status the new status
+     * @return the updated chapter entity
+     */
+    ChapterResponseDto updateStatus(Long id, ChapterStatus status);
+
+    /**
+     * Toggles the free status of a chapter.
+     *
+     * @param id the chapter ID
+     * @param isFree the new free status
+     * @return the updated chapter entity
+     */
+    ChapterResponseDto toggleFreeStatus(Long id, boolean isFree);
 }

@@ -22,4 +22,10 @@ public class ChapterRequestDto {
     private ChapterStatus status;
 
     private int orderIndex;
+
+    private String videoId;
+
+    private Double price;
+
+    private boolean isFree;
 }

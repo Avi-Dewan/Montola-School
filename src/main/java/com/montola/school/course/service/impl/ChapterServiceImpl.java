@@ -1,6 +1,5 @@
 package com.montola.school.course.service.impl;
 
-import com.montola.school.auth.security.CustomUserDetails;
 import com.montola.school.course.dto.ChapterRequestDto;
 import com.montola.school.course.dto.ChapterResponseDto;
 import com.montola.school.course.mapper.ChapterMapper;
@@ -17,8 +16,6 @@ import com.montola.school.auth.service.UserService;
 import com.montola.school.auth.model.User;
 import com.montola.school.course.enums.ChapterStatus;
 import com.montola.school.course.service.TopicService;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.Authentication;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -112,6 +109,9 @@ public class ChapterServiceImpl implements ChapterService {
                     existing.setDescription(dto.getDescription());
                     existing.setStatus(dto.getStatus());
                     existing.setOrderIndex(dto.getOrderIndex());
+                    existing.setVideoId(dto.getVideoId());
+                    existing.setPrice(dto.getPrice());
+                    existing.setFree(dto.isFree());
 
                     return chapterMapper.toResponseDto(chapterRepository.save(existing));
                 })
@@ -177,5 +177,33 @@ public class ChapterServiceImpl implements ChapterService {
         log.info("Unassigning teacher {} from chapter {}", teacherId, chapterId);
         chapterTeacherRepository.deleteByChapterIdAndTeacherId(chapterId, teacherId);
         log.info("Teacher {} successfully unassigned from chapter {}", teacherId, chapterId);
+    }
+
+    @Override
+    @Transactional
+    public ChapterResponseDto updateStatus(Long id, ChapterStatus status) {
+        log.info("Updating status for chapter {}: {}", id, status);
+
+        return chapterRepository.findById(id)
+                .map(chapter -> {
+                    chapter.setStatus(status);
+
+                    return chapterMapper.toResponseDto(chapterRepository.save(chapter));
+                })
+                .orElseThrow(() -> new ResourceNotFoundException("chapter.notfound"));
+    }
+
+    @Override
+    @Transactional
+    public ChapterResponseDto toggleFreeStatus(Long id, boolean isFree) {
+        log.info("Toggling free status for chapter {}: {}", id, isFree);
+
+        return chapterRepository.findById(id)
+                .map(chapter -> {
+                    chapter.setFree(isFree);
+
+                    return chapterMapper.toResponseDto(chapterRepository.save(chapter));
+                })
+                .orElseThrow(() -> new ResourceNotFoundException("chapter.notfound"));
     }
 }

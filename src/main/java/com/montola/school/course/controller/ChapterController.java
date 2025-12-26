@@ -7,6 +7,7 @@ import com.montola.school.course.dto.structure.ChapterStructureResponseDto;
 import com.montola.school.course.service.CourseStructureService;
 import com.montola.school.course.service.ChapterAuthorizationService;
 import com.montola.school.auth.security.CustomUserDetails;
+import com.montola.school.course.enums.ChapterStatus;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -126,5 +127,21 @@ public class ChapterController {
         chapterService.unassignTeacher(chapterId, teacherId);
 
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Update chapter status")
+    @PatchMapping("/{id}/status")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
+    public ResponseEntity<ChapterResponseDto> updateStatus(@PathVariable Long id, @RequestParam ChapterStatus status) {
+        log.info("Updating status for chapter {} to {}", id, status);
+        return ResponseEntity.ok(chapterService.updateStatus(id, status));
+    }
+
+    @Operation(summary = "Toggle chapter free status")
+    @PatchMapping("/{id}/free-status")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
+    public ResponseEntity<ChapterResponseDto> toggleFreeStatus(@PathVariable Long id, @RequestParam boolean isFree) {
+        log.info("Toggling free status for chapter {} to {}", id, isFree);
+        return ResponseEntity.ok(chapterService.toggleFreeStatus(id, isFree));
     }
 }

@@ -41,6 +41,14 @@ public class Chapter extends Persistent {
     @Column(nullable = false, length = 20)
     private ChapterStatus status = ChapterStatus.DRAFT;
 
+    @Column(length = 50)
+    private String videoId;
+
+    private Double price;
+
+    @Column(nullable = false)
+    private boolean isFree = false;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by", nullable = false)
     private User createdBy;
