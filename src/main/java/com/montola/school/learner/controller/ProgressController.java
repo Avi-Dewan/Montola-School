@@ -49,10 +49,19 @@ public class ProgressController {
         return ResponseEntity.ok(progress);
     }
 
-    @GetMapping("/my-progress")
+    @GetMapping("/content/my-progress")
     public ResponseEntity<List<ContentProgress>> getMyProgress(@AuthenticationPrincipal CustomUserDetails currentUser) {
         return ResponseEntity.ok(progressService.getStudentProgress(currentUser.getId()));
     }
+
+    // the response is not correct. Only sending user ID, user name, content id, type, name, is completed, score should be enough
+    // when a student completes all contents that is when we want to increase Enrollment ones perscentage . We have a design decision to makem do we
+    // want to check if every content is competed of a topic, then we make the progress automatically. or do we keep a separate endpoint to mark a topic complete, which then checks
+    // if all the contents were completed or not,
+
+
+    // need endpoint -> chapterwse proefesss. they wil jsut use enrollment repository
+    // studdent own->  chapterId , all chapters,...  admin -> all, per chapter, per student
 
     @GetMapping("/student/{studentId}")
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")

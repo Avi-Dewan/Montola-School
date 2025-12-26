@@ -39,7 +39,7 @@ public class ProgressServiceImpl implements ProgressService {
         progress.setCompleted(true);
         progress.setLastAccessed(LocalDateTime.now());
 
-        return progressRepository.save(progress);
+        return progressRepository.save(progress); // TODO: Mapper needed
     }
 
     @Override
@@ -55,13 +55,13 @@ public class ProgressServiceImpl implements ProgressService {
         // Let's just track the score.
         progress.setCompleted(true); // Assuming taking the quiz marks it as "done" attempt-wise.
 
-        return progressRepository.save(progress);
+        return progressRepository.save(progress); // TODO: Mapper needed, no need send content full, user full, sending content id, name, type is enough
     }
 
     @Override
     public List<ContentProgress> getStudentProgress(Long userId) {
         log.debug("Fetching progress for user: {}", userId);
-        return progressRepository.findByUserId(userId);
+        return progressRepository.findByUserId(userId); // TODO: not working. Maybe because of the if-object mismatch
     }
 
     private ContentProgress getOrCreateProgress(Long userId, Long contentItemId) {
