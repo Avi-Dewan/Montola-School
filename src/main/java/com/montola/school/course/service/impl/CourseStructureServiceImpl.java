@@ -51,7 +51,7 @@ public class CourseStructureServiceImpl implements CourseStructureService {
     private final UserService userService;
 
     @Override
-    public ClassStructureResponseDto getClassStructure(Long classId) { // Maybe public.. Let's keep two. One is for admin and another is for public view.
+    public ClassStructureResponseDto getClassStructure(Long classId) {
         log.info("Fetching full course structure for class ID: {}", classId);
 
         // 1. Fetch Class
@@ -88,13 +88,9 @@ public class CourseStructureServiceImpl implements CourseStructureService {
                     .collect(Collectors.toList());
         }
 
-        List<Long> topicIds = topics.stream().map(Topic::getId).collect(Collectors.toList());
+        // Fetch ContentItems - SKIPPED as only authorized users can see the contents
 
-        // 5. Fetch ContentItems - SKIPPED for Light View
-        // Optimization: We do not fetch content items for the class structure view.
-        // This makes the initial load much faster.
-
-        // 6. Assemble Tree
+        // 5. Assemble Tree
         Map<Long, List<Topic>> topicsByChapterId = topics.stream()
                 .collect(Collectors.groupingBy(t -> t.getChapter().getId()));
 
@@ -111,14 +107,13 @@ public class CourseStructureServiceImpl implements CourseStructureService {
                                 List<Topic> chapterTopics = topicsByChapterId.getOrDefault(chapter.getId(), Collections.emptyList());
 
                                 List<TopicStructureResponseDto> topicDtos = chapterTopics.stream()
-                                        .map(topic -> {
-                                            // Light view: No content items
-                                            return toTopicDto(topic, Collections.emptyList());
-                                        })
+                                        .map(topic -> toTopicDto(topic, Collections.emptyList()))
                                         .collect(Collectors.toList());
+
                                 return toChapterDto(chapter, topicDtos);
                             })
                             .collect(Collectors.toList());
+
                     return toSubjectDto(subject, chapterDtos);
                 })
                 .collect(Collectors.toList());
@@ -141,45 +136,31 @@ public class CourseStructureServiceImpl implements CourseStructureService {
         List<Chapter> chapters = chapterRepository.findBySubjectIdIn(Collections.singletonList(subjectId)).stream()
                 .filter(c -> !c.isDeleted())
                 .filter(c -> currentUser.isAdminOrManagerOrTeacher() || c.getStatus() == PUBLISHED)
-                .collect(Collectors.toList());
+                .toList();
 
         List<Long> chapterIds = chapters.stream().map(Chapter::getId).collect(Collectors.toList());
 
+        // 3. Fetch Topics
         List<Topic> topics = Collections.emptyList();
         if (!chapterIds.isEmpty()) {
             topics = topicRepository.findByChapterIdIn(chapterIds).stream()
                     .filter(t -> !t.isDeleted())
-                    .collect(Collectors.toList());
+                    .toList();
         }
-
-        List<Long> topicIds = topics.stream().map(Topic::getId).collect(Collectors.toList());
-
-        List<ContentItem> contentItems = Collections.emptyList();
-        if (!topicIds.isEmpty()) {
-            contentItems = contentItemRepository.findByTopicIdIn(topicIds).stream()
-                    .filter(c -> !c.isDeleted())
-                    .collect(Collectors.toList());
-        }
-
-        // 3. Assemble
-        Map<Long, List<ContentItem>> contentByTopicId = contentItems.stream()
-                .collect(Collectors.groupingBy(c -> c.getTopic().getId()));
 
         Map<Long, List<Topic>> topicsByChapterId = topics.stream()
                 .collect(Collectors.groupingBy(t -> t.getChapter().getId()));
 
+        // Fetch ContentItems - SKIPPED as only authorized users can see the contents
+
+        // 4. Assemble Tree
         List<ChapterStructureResponseDto> chapterDtos = chapters.stream()
                 .map(chapter -> {
                     List<Topic> chapterTopics = topicsByChapterId.getOrDefault(chapter.getId(), Collections.emptyList());
                     List<TopicStructureResponseDto> topicDtos = chapterTopics.stream()
-                            .map(topic -> {
-                                List<ContentItem> topicContent = contentByTopicId.getOrDefault(topic.getId(), Collections.emptyList());
-                                List<ContentItemStructureResponseDto> contentDtos = topicContent.stream()
-                                        .map(this::toContentDto)
-                                        .collect(Collectors.toList());
-                                return toTopicDto(topic, contentDtos);
-                            })
+                            .map(topic -> toTopicDto(topic, Collections.emptyList()))
                             .collect(Collectors.toList());
+
                     return toChapterDto(chapter, topicDtos);
                 })
                 .collect(Collectors.toList());
@@ -216,6 +197,7 @@ public class CourseStructureServiceImpl implements CourseStructureService {
         // Check Enrollment Status (Access Control). If not enrolled, Hide Content Items
         if (!(currentUser.isAdminOrManagerOrTeacher() ||
                 enrollmentRepository.existsByUserIdAndChapterId(currentUser.getId(), chapterId))) {
+
             contentItems = Collections.emptyList();
             log.info("Chapter {} not enrolled by user {}. Hiding content items.", chapterId, currentUser.getId());
         }
@@ -230,6 +212,7 @@ public class CourseStructureServiceImpl implements CourseStructureService {
                     List<ContentItemStructureResponseDto> contentDtos = topicContent.stream()
                             .map(this::toContentDto)
                             .collect(Collectors.toList());
+
                     return toTopicDto(topic, contentDtos);
                 })
                 .collect(Collectors.toList());
@@ -281,20 +264,5 @@ public class CourseStructureServiceImpl implements CourseStructureService {
                 .type(entity.getType())
                 .orderIndex(entity.getOrderIndex())
                 .build();
-    }
-
-    private Long getCurrentUserId() {
-        var authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails) {
-            return ((CustomUserDetails) authentication.getPrincipal()).getId();
-        }
-
-        return null;
-    }
-
-    private boolean isAdminOrManagerOrTeacher(User user) {
-
-        return user.isAdminOrManager() || user.isTeacher();
     }
 }
