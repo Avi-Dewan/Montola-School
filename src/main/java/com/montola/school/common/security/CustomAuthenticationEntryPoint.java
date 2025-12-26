@@ -33,7 +33,7 @@ import java.util.Map;
 public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
     private final MessageSource messageSource;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
 
     /**
      * Called when a user attempts to access a secured endpoint without authentication.
