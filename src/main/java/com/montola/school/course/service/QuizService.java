@@ -1,5 +1,6 @@
 package com.montola.school.course.service;
 
+import com.montola.school.course.dto.QuizQuestionRequestDto;
 import com.montola.school.course.dto.QuizRequestDto;
 import com.montola.school.course.dto.QuizResponseDto;
 
@@ -61,4 +62,31 @@ public interface QuizService {
      * @return the quiz response DTO
      */
     QuizResponseDto getByContentItemId(Long contentItemId);
+
+    /**
+     * Updates an existing quiz by its associated content item ID.
+     *
+     * @param contentItemId the content item ID
+     * @param updated the updated details
+     * @return the updated quiz entity
+     */
+    QuizResponseDto updateByContentItemId(Long contentItemId, QuizRequestDto updated);
+
+    /**
+     * Updates questions for a quiz.
+     *
+     * @param id the quiz ID
+     * @param questions the list of questions
+     * @return the updated quiz response DTO
+     */
+    QuizResponseDto updateQuestions(Long id, List<QuizQuestionRequestDto> questions);
+
+    /**
+     * Updates questions for a quiz by its associated content item ID.
+     *
+     * @param contentItemId the content item ID
+     * @param questions the list of questions
+     * @return the updated quiz response DTO
+     */
+    QuizResponseDto updateQuestionsByContentItemId(Long contentItemId, List<QuizQuestionRequestDto> questions);
 }

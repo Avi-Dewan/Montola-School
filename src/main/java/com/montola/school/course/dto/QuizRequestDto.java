@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
+import java.util.List;
 
 
 /**
@@ -39,4 +40,6 @@ public class QuizRequestDto {
 
     @NotNull
     private Integer orderIndex;
+
+    private List<QuizQuestionRequestDto> questions;
 }

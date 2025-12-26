@@ -4,6 +4,7 @@ import com.montola.school.auth.model.User;
 import com.montola.school.auth.service.UserService;
 import com.montola.school.course.dto.GooglePdfContentRequestDto;
 import com.montola.school.course.dto.LectureRequestDto;
+import com.montola.school.course.dto.QuizQuestionRequestDto;
 import com.montola.school.course.dto.QuizRequestDto;
 import com.montola.school.course.service.*;
 import com.montola.school.auth.security.CustomUserDetails;
@@ -15,12 +16,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * @author avidewan
@@ -91,5 +89,74 @@ public class ContentController {
         Object content = contentAccessService.getContentById(id, currentUser.getId(), currentUser.isAdminOrManagerOrTeacher());
 
         return ResponseEntity.ok(content);
+    }
+
+    @Operation(summary = "Update an existing quiz")
+    @PutMapping("/quiz/{id}")
+    public ResponseEntity<?> updateQuiz(@AuthenticationPrincipal CustomUserDetails currentUser,
+                                        @PathVariable Long id,
+                                        @RequestBody QuizRequestDto dto) {
+
+        log.info("Updating quiz {} by user {}", id, currentUser.getId());
+
+        // Authorization check
+        if (!authorizationService.canEditTopic(currentUser.getId(), dto.getTopicId())) {
+            throw new AccessDeniedException("Insufficient permissions to update quiz");
+        }
+
+        return ResponseEntity.ok(quizService.update(id, dto));
+    }
+
+    @Operation(summary = "Update quiz questions")
+    @PutMapping("/quiz/{id}/questions")
+    public ResponseEntity<?> updateQuizQuestions(@AuthenticationPrincipal CustomUserDetails currentUser,
+                                                  @PathVariable Long id,
+                                                  @RequestBody List<QuizQuestionRequestDto> questions) {
+
+        log.info("Updating questions for quiz {} by user {}", id, currentUser.getId());
+
+        // Authorization check - potentially need a better way to check topic of a quiz by quiz id
+        // For now, let's assume we can fetch it or use a broader check if available.
+        // To be safe, let's fetch the quiz to get the topic ID for authorization.
+        var quiz = quizService.getById(id);
+
+        if (!authorizationService.canEditTopic(currentUser.getId(), quiz.getTopicId())) {
+            throw new AccessDeniedException("Insufficient permissions to update quiz questions");
+        }
+
+        return ResponseEntity.ok(quizService.updateQuestions(id, questions));
+    }
+
+    @Operation(summary = "Update an existing quiz by content item ID")
+    @PutMapping("/quiz/content-item/{contentItemId}")
+    public ResponseEntity<?> updateQuizByContentItem(@AuthenticationPrincipal CustomUserDetails currentUser,
+                                                     @PathVariable Long contentItemId,
+                                                     @RequestBody QuizRequestDto dto) {
+
+        log.info("Updating quiz for content item {} by user {}", contentItemId, currentUser.getId());
+
+        // Authorization check
+        if (!authorizationService.canEditTopic(currentUser.getId(), dto.getTopicId())) {
+            throw new AccessDeniedException("Insufficient permissions to update quiz");
+        }
+
+        return ResponseEntity.ok(quizService.updateByContentItemId(contentItemId, dto));
+    }
+
+    @Operation(summary = "Update quiz questions by content item ID")
+    @PutMapping("/quiz/content-item/{contentItemId}/questions")
+    public ResponseEntity<?> updateQuizQuestionsByContentItem(@AuthenticationPrincipal CustomUserDetails currentUser,
+                                                               @PathVariable Long contentItemId,
+                                                               @RequestBody List<QuizQuestionRequestDto> questions) {
+
+        log.info("Updating questions for quiz with content item {} by user {}", contentItemId, currentUser.getId());
+
+        // Authorization check
+        var quiz = quizService.getByContentItemId(contentItemId);
+        if (!authorizationService.canEditTopic(currentUser.getId(), quiz.getTopicId())) {
+            throw new AccessDeniedException("Insufficient permissions to update quiz questions");
+        }
+
+        return ResponseEntity.ok(quizService.updateQuestionsByContentItemId(contentItemId, questions));
     }
 }

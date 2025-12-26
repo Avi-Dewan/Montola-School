@@ -3,6 +3,8 @@ package com.montola.school.course.dto;
 import com.montola.school.course.enums.QuizType;
 import lombok.*;
 
+import java.util.List;
+
 
 /**
  * @author avidewan
@@ -25,4 +27,6 @@ public class QuizResponseDto {
     private Long topicId;
     private String topicTitle;
     private int orderIndex;
+
+    private List<QuizQuestionResponseDto> questions;
 }

@@ -48,4 +48,13 @@ public class Quiz extends Persistent {
 
     @OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<QuizQuestion> questions;
+
+    public void addQuestion(QuizQuestion question) {
+        if (questions == null) {
+            questions = new java.util.ArrayList<>();
+        }
+
+        questions.add(question);
+        question.setQuiz(this);
+    }
 }

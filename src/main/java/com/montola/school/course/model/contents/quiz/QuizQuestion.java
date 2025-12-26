@@ -52,4 +52,39 @@ public class QuizQuestion extends Persistent {
 
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<QuizTableMatching> tableMatchings;
+
+    public void addOption(QuizOption option) {
+        if (options == null) {
+            options = new java.util.ArrayList<>();
+        }
+
+        options.add(option);
+        option.setQuestion(this);
+    }
+
+    public void setWrittenAnswer(QuizWrittenAnswer writtenAnswer) {
+        this.writtenAnswer = writtenAnswer;
+
+        if (writtenAnswer != null) {
+            writtenAnswer.setQuestion(this);
+        }
+    }
+
+    public void addFillBlank(QuizFillBlank fillBlank) {
+        if (fillBlanks == null) {
+            fillBlanks = new java.util.ArrayList<>();
+        }
+
+        fillBlanks.add(fillBlank);
+        fillBlank.setQuestion(this);
+    }
+
+    public void addTableMatching(QuizTableMatching tableMatching) {
+        if (tableMatchings == null) {
+            tableMatchings = new java.util.ArrayList<>();
+        }
+
+        tableMatchings.add(tableMatching);
+        tableMatching.setQuestion(this);
+    }
 }

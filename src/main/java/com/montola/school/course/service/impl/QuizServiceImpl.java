@@ -1,12 +1,14 @@
 package com.montola.school.course.service.impl;
 
 import com.montola.school.common.exception.ResourceNotFoundException;
+import com.montola.school.course.dto.QuizQuestionRequestDto;
 import com.montola.school.course.dto.QuizRequestDto;
 import com.montola.school.course.dto.QuizResponseDto;
 import com.montola.school.course.enums.ContentItemType;
 import com.montola.school.course.mapper.QuizMapper;
 import com.montola.school.course.model.ContentItem;
 import com.montola.school.course.model.contents.Quiz;
+import com.montola.school.course.model.contents.quiz.QuizQuestion;
 import com.montola.school.course.repository.ContentItemRepository;
 import com.montola.school.course.repository.QuizRepository;
 import com.montola.school.course.repository.TopicRepository;
@@ -102,6 +104,7 @@ public class QuizServiceImpl implements QuizService {
                 });
 
         existing.getContentItem().setTitle(dto.getTitle());
+        existing.getContentItem().setOrderIndex(dto.getOrderIndex());
         existing.setInstruction(dto.getInstruction());
         existing.setTimeLimit(dto.getTimeLimit());
         existing.setTotalMarks(dto.getTotalMarks());
@@ -121,7 +124,6 @@ public class QuizServiceImpl implements QuizService {
         quizRepository.findById(id).ifPresent(entity -> {
             entity.setDeleted(true);
             quizRepository.save(entity);
-            quizRepository.save(entity);
         });
     }
 
@@ -134,5 +136,72 @@ public class QuizServiceImpl implements QuizService {
                 .orElseThrow(() -> new ResourceNotFoundException("quiz.notfound"));
                 
         return quizMapper.toResponseDto(entity);
+    }
+
+    @Override
+    @Transactional
+    public QuizResponseDto updateByContentItemId(Long contentItemId, QuizRequestDto dto) {
+        log.info("Updating quiz with content item ID: {}", contentItemId);
+
+        Quiz existing = quizRepository.findByContentItem_Id(contentItemId)
+                .filter(q -> !q.isDeleted())
+                .orElseThrow(() -> new ResourceNotFoundException("quiz.notfound"));
+
+        return update(existing.getId(), dto);
+    }
+
+    @Override
+    @Transactional
+    public QuizResponseDto updateQuestions(Long id, List<QuizQuestionRequestDto> questions) {
+        log.info("Updating questions for quiz with ID: {}", id);
+
+        Quiz existing = quizRepository.findById(id)
+                .filter(q -> !q.isDeleted())
+                .orElseThrow(() -> new ResourceNotFoundException("quiz.notfound"));
+
+        // Clear existing questions
+        existing.getQuestions().clear();
+        quizRepository.flush();
+
+        if (questions != null) {
+            List<QuizQuestion> newQuestions = questions.stream()
+                    .map(quizMapper::toEntity)
+                    .toList();
+
+            newQuestions.forEach(question -> {
+                existing.addQuestion(question);
+                if (question.getOptions() != null) {
+                    question.getOptions().forEach(option -> option.setQuestion(question));
+                }
+
+                if (question.getWrittenAnswer() != null) {
+                    question.getWrittenAnswer().setQuestion(question);
+                }
+
+                if (question.getFillBlanks() != null) {
+                    question.getFillBlanks().forEach(fb -> fb.setQuestion(question));
+                }
+
+                if (question.getTableMatchings() != null) {
+                    question.getTableMatchings().forEach(tm -> tm.setQuestion(question));
+                }
+            });
+        }
+
+        Quiz saved = quizRepository.save(existing);
+
+        return quizMapper.toResponseDto(saved);
+    }
+
+    @Override
+    @Transactional
+    public QuizResponseDto updateQuestionsByContentItemId(Long contentItemId, List<com.montola.school.course.dto.QuizQuestionRequestDto> questions) {
+        log.info("Updating questions for quiz with content item ID: {}", contentItemId);
+
+        Quiz existing = quizRepository.findByContentItem_Id(contentItemId)
+                .filter(q -> !q.isDeleted())
+                .orElseThrow(() -> new ResourceNotFoundException("quiz.notfound"));
+
+        return updateQuestions(existing.getId(), questions);
     }
 }
