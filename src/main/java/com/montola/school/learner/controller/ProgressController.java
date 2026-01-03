@@ -52,11 +52,14 @@ public class ProgressController {
         return ResponseEntity.ok(progressService.submitQuizResult(currentUser.getId(), contentItemId, score));
     }
 
-    @Operation(summary = "Get list of all content progress for current student") // TODO: delete  ?
+    @Operation(summary = "Get list of all content progress for current student") // TODO: delete  ? a student will never try to see his all contents status
     @GetMapping("/my-content-progress")
     public ResponseEntity<List<ContentProgressResponseDto>> getMyContentProgress(@AuthenticationPrincipal CustomUserDetails currentUser) {
         return ResponseEntity.ok(progressService.getStudentProgress(currentUser.getId()));
     }
+    // Rather a student might want to see his full Chapter in details progress. We have the summary api below which just shows the progress. we need another one for detailed.
+    // It will be called along with the chapter structure endpoint called in Chapter controller. where we see chapter -> topic -> content..... we can just send a map..
+    // student will give chapter id. we will return a map of ( contentId, isCompleted)
 
     @Operation(summary = "Get progress summary for a specific chapter")
     @GetMapping("/chapter/{chapterId}")
@@ -73,8 +76,9 @@ public class ProgressController {
 
     @Operation(summary = "Get progress for a specific student (Admin/Manager only)")
     @GetMapping("/student/{studentId}")
-    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")  // TODO: delete ? what will admin or manager do with individual contnet progress
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")  // TODO: delete ? what will admin or manager do with individual content progress
     public ResponseEntity<List<ContentProgressResponseDto>> getStudentProgress(@PathVariable Long studentId) {
         return ResponseEntity.ok(progressService.getStudentProgress(studentId));
     }
+    // Rather make an endpoint to to track chapter wise prgress for all enroleld students. basically a teacher or admin or manager will give chapter Id and can see the enroleld students progress
 }
