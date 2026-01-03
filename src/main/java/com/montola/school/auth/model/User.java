@@ -33,6 +33,9 @@ public class User extends Persistent {
     @NotBlank
     private String email;
 
+    @Column(name = "full_name")
+    private String fullName;
+
     @Column(nullable = false)
     @NotBlank
     private String passwordHash;

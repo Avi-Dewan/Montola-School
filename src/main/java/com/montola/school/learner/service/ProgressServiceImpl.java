@@ -158,6 +158,7 @@ public class ProgressServiceImpl implements ProgressService {
     private ContentProgressResponseDto mapToContentProgressDto(ContentProgress progress) {
         return ContentProgressResponseDto.builder()
                 .userId(progress.getUser().getId())
+                .fullName(progress.getUser().getFullName())
                 .contentItemId(progress.getContentItem().getId())
                 .contentTitle(progress.getContentItem().getTitle())
                 .contentType(progress.getContentItem().getType())

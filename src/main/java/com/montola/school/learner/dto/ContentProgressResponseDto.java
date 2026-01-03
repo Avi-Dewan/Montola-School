@@ -15,7 +15,7 @@ import lombok.Data;
 public class ContentProgressResponseDto {
 
     private Long userId;
-//    private String userName;
+    private String fullName;
     private Long contentItemId;
     private String contentTitle;
     private ContentItemType contentType;
