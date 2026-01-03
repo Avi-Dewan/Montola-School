@@ -13,6 +13,8 @@ import com.montola.school.auth.security.CustomUserDetails;
 import com.montola.school.common.exception.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -116,26 +118,39 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void changePassword(ChangePasswordRequest request) {
-        CustomUserDetails currentUser =
-                (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        log.info("User {} requested password change", currentUser.getUsername());
-
-        User user = userRepository.findById(currentUser.getId())
-                .orElseThrow(() -> {
-                    log.error("Password change failed: user not found with ID {}", currentUser.getId());
-
-                    return new ResourceNotFoundException("user.notfound");
-                });
+        User user = getCurrentUser();
+        log.info("User {} requested password change", user.getEmail());
 
         if (!passwordEncoder.matches(request.getOldPassword(), user.getPasswordHash())) {
-            log.warn("Invalid old password provided for user {}", currentUser.getUsername());
+            log.warn("Invalid old password provided for user {}", user.getEmail());
 
             throw new InvalidCredentialsException();
         }
 
         user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
-        log.info("Password changed successfully for user {}", currentUser.getUsername());
+        log.info("Password changed successfully for user {}", user.getEmail());
+    }
+
+    @Override
+    public CustomUserDetails getCurrentUserDetails() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails userDetails) {
+            return userDetails;
+        }
+
+        log.error("Unable to find authenticated user in security context");
+
+        throw new IllegalStateException("Authenticated user not found");
+    }
+
+    @Override
+    public User getCurrentUser() {
+        CustomUserDetails userDetails = getCurrentUserDetails();
+
+        return userRepository.findById(userDetails.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("user.notfound"));
     }
 
     @Override

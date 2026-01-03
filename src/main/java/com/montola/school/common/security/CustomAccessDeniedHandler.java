@@ -32,7 +32,7 @@ import java.util.Locale;
 public class CustomAccessDeniedHandler implements AccessDeniedHandler {
 
     private final MessageSource messageSource;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
 
     /**
      * Called when an authenticated user tries to access a resource they are not authorized for.
