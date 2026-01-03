@@ -5,6 +5,7 @@ import com.montola.school.course.dto.GooglePdfContentResponseDto;
 import com.montola.school.course.dto.LectureResponseDto;
 import com.montola.school.course.dto.QuizResponseDto;
 import com.montola.school.course.enums.ContentItemType;
+import com.montola.school.course.model.Chapter;
 import com.montola.school.course.model.ContentItem;
 import com.montola.school.course.repository.ContentItemRepository;
 import com.montola.school.course.service.ContentAccessService;
@@ -45,12 +46,9 @@ public class ContentAccessServiceImpl implements ContentAccessService {
                 .orElseThrow(() -> new ResourceNotFoundException("course.content.notfound"));
 
         // Get chapter ID from content item hierarchy
-        Long chapterId = contentItem.getTopic().getChapter().getId();
+        Chapter chapter = contentItem.getTopic().getChapter();
 
-        if (!isAdminOrManagerOrTeacher && !enrollmentRepository.existsByUserIdAndChapterId(userId, chapterId)) {
-            log.warn("User {} not enrolled in chapter {} for content {}", userId, chapterId, contentItemId);
-            throw new AccessDeniedException("You must purchase this chapter to access this content");
-        }
+        checkAccess(userId, isAdminOrManagerOrTeacher, chapter);
 
         // Return full DTO based on content type
         ContentItemType type = contentItem.getType();
@@ -77,5 +75,14 @@ public class ContentAccessServiceImpl implements ContentAccessService {
     @Override
     public GooglePdfContentResponseDto getPdfByContentItemId(Long contentItemId, Long userId) {
         return pdfService.getByContentItemId(contentItemId);
+    }
+
+    private void checkAccess(Long userId, boolean isAdminOrManagerOrTeacher, Chapter chapter) {
+        if (!chapter.isFree() && !isAdminOrManagerOrTeacher &&
+                !enrollmentRepository.existsByUserIdAndChapterId(userId, chapter.getId())) {
+
+            log.warn("User {} not enrolled in chapter {} for accessing content", userId, chapter.getId());
+            throw new AccessDeniedException("You must purchase this chapter to access this content");
+        }
     }
 }
