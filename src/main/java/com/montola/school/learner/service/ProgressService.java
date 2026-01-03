@@ -1,6 +1,7 @@
 package com.montola.school.learner.service;
 
-import com.montola.school.learner.model.ContentProgress;
+import com.montola.school.learner.dto.ChapterProgressResponseDto;
+import com.montola.school.learner.dto.ContentProgressResponseDto;
 import java.util.List;
 
 /**
@@ -16,9 +17,9 @@ public interface ProgressService {
      *
      * @param userId        ID of the user
      * @param contentItemId ID of the content item
-     * @return The updated ContentProgress
+     * @return The updated ContentProgress DTO
      */
-    ContentProgress markComplete(Long userId, Long contentItemId);
+    ContentProgressResponseDto markComplete(Long userId, Long contentItemId);
 
     /**
      * Submits a quiz score for a content item.
@@ -26,9 +27,9 @@ public interface ProgressService {
      * @param userId        ID of the user
      * @param contentItemId ID of the content item
      * @param score         The score achieved
-     * @return The updated ContentProgress
+     * @return The updated ContentProgress DTO
      */
-    ContentProgress submitQuizResult(Long userId, Long contentItemId, Double score);
+    ContentProgressResponseDto submitQuizResult(Long userId, Long contentItemId, Double score);
 
     /**
      * Retrieves all progress records for a specific user.
@@ -36,5 +37,22 @@ public interface ProgressService {
      * @param userId the user ID
      * @return list of progress records
      */
-    List<ContentProgress> getStudentProgress(Long userId);
+    List<ContentProgressResponseDto> getStudentProgress(Long userId);
+
+    /**
+     * Retrieves progress for a specific chapter for a user.
+     *
+     * @param userId    the user ID
+     * @param chapterId the chapter ID
+     * @return chapter progress DTO
+     */
+    ChapterProgressResponseDto getChapterProgress(Long userId, Long chapterId);
+
+    /**
+     * Retrieves progress for all enrolled chapters for a user.
+     *
+     * @param userId the user ID
+     * @return list of chapter progress DTOs
+     */
+    List<ChapterProgressResponseDto> getAllEnrolledChapterProgress(Long userId);
 }
