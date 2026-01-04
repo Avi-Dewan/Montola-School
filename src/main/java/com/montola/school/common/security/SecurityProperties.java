@@ -19,6 +19,8 @@ public class SecurityProperties {
                 "/api/auth/resend-activation",
                 "/api/auth/forgot-password",
                 "/api/auth/reset-password",
+                "/api/v1/classes",
+                "/api/v1/featured-chapters",
                 "/v3/api-docs/**",
                 "/swagger-ui/**",
                 "/swagger-ui.html"
