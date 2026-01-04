@@ -21,4 +21,6 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Long> {
     Optional<Enrollment> findByUserIdAndChapterId(Long userId, Long chapterId);
 
     List<Enrollment> findByUserId(Long userId);
+
+    List<Enrollment> findByChapterId(Long chapterId);
 }

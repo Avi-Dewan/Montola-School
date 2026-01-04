@@ -17,8 +17,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+
+import com.montola.school.learner.dto.StudentChapterProgressDto;
 
 /**
  * Implementation of ProgressService.
@@ -73,12 +77,18 @@ public class ProgressServiceImpl implements ProgressService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<ContentProgressResponseDto> getStudentProgress(Long userId) { // TODO: Delete, maybe not needed
-        log.debug("Fetching progress for user: {}", userId);
+    public Map<Long, Boolean> getChapterDetailedProgress(Long userId, Long chapterId) {
+        log.debug("Fetching detailed chapter progress for user {} chapter {}", userId, chapterId);
+        
+        List<ContentProgress> progressList = progressRepository.findByUserIdAndContentItem_Topic_Chapter_Id(userId, chapterId);
+        
+        Map<Long, Boolean> detailedProgress = new HashMap<>();
 
-        return progressRepository.findByUserId(userId).stream()
-                .map(this::mapToContentProgressDto)
-                .collect(Collectors.toList());
+        for (ContentProgress progress : progressList) {
+            detailedProgress.put(progress.getContentItem().getId(), progress.isCompleted());
+        }
+        
+        return detailedProgress;
     }
 
     @Override
@@ -90,6 +100,16 @@ public class ProgressServiceImpl implements ProgressService {
                 .orElseThrow(() -> new ResourceNotFoundException("learner.enrollment.notfound"));
 
         return mapToChapterProgressDto(enrollment);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<StudentChapterProgressDto> getChapterStudentsProgress(Long chapterId) {
+        log.debug("Fetching all students progress for chapter {}", chapterId);
+        
+        return enrollmentRepository.findByChapterId(chapterId).stream()
+                .map(this::mapToStudentChapterProgressDto)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -171,6 +191,15 @@ public class ProgressServiceImpl implements ProgressService {
         return ChapterProgressResponseDto.builder()
                 .chapterId(enrollment.getChapter().getId())
                 .chapterTitle(enrollment.getChapter().getTitle())
+                .progressPercentage(enrollment.getProgressPercentage())
+                .isCompleted(enrollment.isCompleted())
+                .build();
+    }
+
+    private StudentChapterProgressDto mapToStudentChapterProgressDto(Enrollment enrollment) {
+        return StudentChapterProgressDto.builder()
+                .studentId(enrollment.getUser().getId())
+                .studentName(enrollment.getUser().getFullName())
                 .progressPercentage(enrollment.getProgressPercentage())
                 .isCompleted(enrollment.isCompleted())
                 .build();

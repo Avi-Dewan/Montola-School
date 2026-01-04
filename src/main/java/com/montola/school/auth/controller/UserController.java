@@ -5,15 +5,17 @@ import com.montola.school.auth.enums.Role;
 import com.montola.school.auth.mapper.UserMapper;
 import com.montola.school.auth.model.User;
 import com.montola.school.auth.service.UserService;
-import com.montola.school.auth.enums.Role;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
@@ -108,5 +110,29 @@ public class UserController {
         log.debug("Email {} exists? {}", email, exists);
 
         return ResponseEntity.ok(exists);
+    }
+
+    @Operation(summary = "Upload profile picture")
+    @PostMapping(value = "/{id}/profile-picture", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or #id == principal.id")
+    public ResponseEntity<Void> uploadProfilePicture(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
+
+        log.info("Uploading profile picture for user id: {}", id);
+        userService.updateProfilePicture(id, file);
+
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "Get profile picture")
+    @GetMapping("/{id}/profile-picture")
+    public ResponseEntity<byte[]> getProfilePicture(@PathVariable Long id) {
+        log.info("Fetching profile picture for user id: {}", id);
+        byte[] photo = userService.getProfilePicture(id);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.IMAGE_JPEG);
+        headers.setCacheControl("max-age=31536000");
+
+        return new ResponseEntity<>(photo, headers, HttpStatus.OK);
     }
 }

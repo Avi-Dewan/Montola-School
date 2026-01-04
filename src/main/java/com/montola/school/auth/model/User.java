@@ -51,6 +51,11 @@ public class User extends Persistent {
     @NotEmpty
     private Set<Role> roles;
 
+    @Lob
+    @Basic(fetch = FetchType.LAZY)
+    @Column(name = "profile_photo")
+    private byte[] profilePhoto;
+
     public boolean isAdminOrManager() {
         return roles.contains(ADMIN) || roles.contains(MANAGER);
     }

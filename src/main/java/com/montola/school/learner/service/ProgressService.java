@@ -2,7 +2,10 @@ package com.montola.school.learner.service;
 
 import com.montola.school.learner.dto.ChapterProgressResponseDto;
 import com.montola.school.learner.dto.ContentProgressResponseDto;
+import com.montola.school.learner.dto.StudentChapterProgressDto;
+
 import java.util.List;
+import java.util.Map;
 
 /**
  * Service for tracking student progress.
@@ -32,12 +35,13 @@ public interface ProgressService {
     ContentProgressResponseDto submitQuizResult(Long userId, Long contentItemId, Double score);
 
     /**
-     * Retrieves all progress records for a specific user.
+     * Retrieves detailed progress for a specific chapter for a user (status for each content).
      *
-     * @param userId the user ID
-     * @return list of progress records
+     * @param userId    the user ID
+     * @param chapterId the chapter ID
+     * @return a map of contentId to its completion status
      */
-    List<ContentProgressResponseDto> getStudentProgress(Long userId);
+    Map<Long, Boolean> getChapterDetailedProgress(Long userId, Long chapterId);
 
     /**
      * Retrieves progress for a specific chapter for a user.
@@ -47,6 +51,14 @@ public interface ProgressService {
      * @return chapter progress DTO
      */
     ChapterProgressResponseDto getChapterProgress(Long userId, Long chapterId);
+
+    /**
+     * Retrieves progress for all students enrolled in a specific chapter (Admin/Teacher view).
+     *
+     * @param chapterId the chapter ID
+     * @return list of student progress summaries
+     */
+    List<StudentChapterProgressDto> getChapterStudentsProgress(Long chapterId);
 
     /**
      * Retrieves progress for all enrolled chapters for a user.

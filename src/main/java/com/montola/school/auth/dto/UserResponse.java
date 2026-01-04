@@ -23,6 +23,8 @@ public class UserResponse {
 
     private Set<Role> roles;
 
+    private boolean hasProfilePicture;
+
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
