@@ -8,6 +8,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.util.Set;
 
@@ -51,8 +53,7 @@ public class User extends Persistent {
     @NotEmpty
     private Set<Role> roles;
 
-    @Lob
-    @Basic(fetch = FetchType.LAZY)
+    @JdbcTypeCode(SqlTypes.BINARY)
     @Column(name = "profile_photo")
     private byte[] profilePhoto;
 

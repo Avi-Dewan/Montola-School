@@ -17,6 +17,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -117,6 +118,18 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or #id == principal.id")
     public ResponseEntity<Void> uploadProfilePicture(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
 
+        String contentType = file.getContentType();
+
+        if (contentType == null || !isValidImageContentType(contentType)) {
+            log.warn("Invalid profile picture content type: {}", contentType);
+            throw new IllegalArgumentException("Invalid file type. Only JPEG, PNG, and WEBP are allowed.");
+        }
+
+        if (file.getSize() > 500 * 1024) {
+            log.warn("Profile picture size exceeded 500KB: {}", file.getSize());
+            throw new IllegalArgumentException("File size exceeds the 500KB limit for profile pictures.");
+        }
+
         log.info("Uploading profile picture for user id: {}", id);
         userService.updateProfilePicture(id, file);
 
@@ -134,5 +147,9 @@ public class UserController {
         headers.setCacheControl("max-age=31536000");
 
         return new ResponseEntity<>(photo, headers, HttpStatus.OK);
+    }
+
+    private boolean isValidImageContentType(String contentType) {
+        return Arrays.asList("image/jpeg", "image/png", "image/webp").contains(contentType);
     }
 }

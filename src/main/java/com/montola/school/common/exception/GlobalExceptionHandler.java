@@ -12,6 +12,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -78,10 +79,13 @@ public class GlobalExceptionHandler {
     // ----------------- Illegal / Custom Argument Exceptions -----------------
 
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ErrorResponse> handleIllegalArgument(
-            IllegalArgumentException ex, Locale locale) {
+    public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException ex, Locale locale) {
+        String message = ex.getMessage();
 
-        String message = messageSource.getMessage("error.illegal.argument", null, locale);
+        if (message == null || message.isEmpty()) {
+            message = messageSource.getMessage("error.illegal.argument", null, "Invalid argument", locale);
+        }
+
         log.warn("Illegal argument exception: {}", ex.getMessage());
 
         return buildResponse(HttpStatus.BAD_REQUEST, message, null);
@@ -152,12 +156,22 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleResourceExists(ResourceNotFoundException ex, Locale locale) {
+    public ResponseEntity<ErrorResponse> handleResourceNotFound(ResourceNotFoundException ex, Locale locale) {
 
-        String message = messageSource.getMessage(ex.getMessageKey(), null, locale);
+        String message = messageSource.getMessage(ex.getMessageKey(), null, "Resource not found", locale);
         log.info("Resource not found: {}", ex.getMessageKey());
 
-        return buildResponse(HttpStatus.CONFLICT, message, null);
+        return buildResponse(HttpStatus.NOT_FOUND, message, null);
+    }
+
+    // ----------------- File Upload Exceptions -----------------
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ErrorResponse> handleMaxSizeException(MaxUploadSizeExceededException ex, Locale locale) {
+        String message = messageSource.getMessage("upload.file.too.large", null, "File size exceeds the maximum allowed limit.", locale);
+        log.warn("Upload size exceeded: {}", ex.getMessage());
+
+        return buildResponse(HttpStatus.PAYLOAD_TOO_LARGE, message, null);
     }
 
     // ----------------- Fallback Exception -----------------
