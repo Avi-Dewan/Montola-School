@@ -206,4 +206,31 @@ public class ChapterServiceImpl implements ChapterService {
                 })
                 .orElseThrow(() -> new ResourceNotFoundException("chapter.notfound"));
     }
+
+    @Override
+    @Transactional
+    public void uploadCoverImage(Long id, byte[] imageBytes) {
+        log.info("Uploading cover image for chapter {}", id);
+        Chapter chapter = chapterRepository.findById(id)
+                .filter(c -> !c.isDeleted())
+                .orElseThrow(() -> new ResourceNotFoundException("chapter.notfound"));
+
+        chapter.setCoverImage(imageBytes);
+
+        chapterRepository.save(chapter);
+
+        log.info("Cover image uploaded for chapter {}", id);
+    }
+
+    @Override
+    public byte[] getCoverImage(Long id) {
+        log.debug("Fetching cover image for chapter {}", id);
+
+        Chapter chapter = chapterRepository.findById(id)
+                .filter(c -> !c.isDeleted())
+                .orElseThrow(() -> new ResourceNotFoundException("chapter.notfound"));
+
+        return chapter.getCoverImage();
+    }
+
 }

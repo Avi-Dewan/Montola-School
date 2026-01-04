@@ -14,12 +14,16 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -143,5 +147,43 @@ public class ChapterController {
     public ResponseEntity<ChapterResponseDto> toggleFreeStatus(@PathVariable Long id, @RequestParam boolean isFree) {
         log.info("Toggling free status for chapter {} to {}", id, isFree);
         return ResponseEntity.ok(chapterService.toggleFreeStatus(id, isFree));
+    }
+
+    @Operation(summary = "Upload chapter cover image")
+    @PostMapping(value = "/{id}/cover-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
+    public ResponseEntity<Void> uploadCoverImage(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
+        log.info("Uploading cover image for chapter {}", id);
+
+        try {
+            if (file.getSize() > 500 * 1024) {
+                 throw new IllegalArgumentException("File size exceeds 500KB limit");
+            }
+
+            chapterService.uploadCoverImage(id, file.getBytes());
+
+            return ResponseEntity.ok().build();
+
+        } catch (IOException e) {
+            log.error("Failed to read file", e);
+            throw new RuntimeException("Failed to upload image", e);
+        }
+    }
+
+    @Operation(summary = "Get chapter cover image")
+    @GetMapping("/{id}/cover-image")
+    public ResponseEntity<byte[]> getCoverImage(@PathVariable Long id) {
+        log.info("Fetching cover image for chapter {}", id);
+        byte[] image = chapterService.getCoverImage(id);
+
+        if (image == null || image.length == 0) {
+            return ResponseEntity.notFound().build();
+        }
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.IMAGE_JPEG);
+        headers.setCacheControl("max-age=31536000"); // Cache for 1 year
+
+        return new ResponseEntity<>(image, headers, HttpStatus.OK);
     }
 }

@@ -90,4 +90,8 @@ public interface ChapterService {
      * @return the updated chapter entity
      */
     ChapterResponseDto toggleFreeStatus(Long id, boolean isFree);
+
+    void uploadCoverImage(Long id, byte[] imageBytes);
+
+    byte[] getCoverImage(Long id);
 }

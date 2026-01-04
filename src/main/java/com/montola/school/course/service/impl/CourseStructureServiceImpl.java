@@ -220,6 +220,52 @@ public class CourseStructureServiceImpl implements CourseStructureService {
         return toChapterDto(chapter, topicDtos);
     }
 
+    @Override
+    public ClassStructureResponseDto getPublicClassStructure(Long classId) {
+        log.info("Fetching public course structure for class ID: {}", classId);
+
+        // 1. Fetch Class
+        ClassEntity classEntity = classRepository.findById(classId)
+                .filter(c -> !c.isDeleted())
+                .orElseThrow(() -> new ResourceNotFoundException("class.notfound"));
+
+        // 2. Fetch Subjects
+        List<Subject> subjects = subjectRepository.findByClassEntity_Id(classId).stream()
+                .filter(s -> !s.isDeleted())
+                .collect(Collectors.toList());
+
+        if (subjects.isEmpty()) {
+            return buildClassDto(classEntity, Collections.emptyList());
+        }
+
+        List<Long> subjectIds = subjects.stream().map(Subject::getId).collect(Collectors.toList());
+
+        // 3. Fetch PUBLISHED Chapters (No User Check)
+        List<Chapter> chapters = chapterRepository.findBySubjectIdIn(subjectIds).stream()
+                .filter(c -> !c.isDeleted())
+                .filter(c -> c.getStatus() == PUBLISHED)
+                .collect(Collectors.toList());
+
+        Map<Long, List<Chapter>> chaptersBySubjectId = chapters.stream()
+                .collect(Collectors.groupingBy(c -> c.getSubject().getId()));
+
+        // 4. Assemble Tree (Class -> Subject -> Chapter)
+        List<SubjectStructureResponseDto> subjectDtos = subjects.stream()
+                .map(subject -> {
+                    List<Chapter> subjectChapters = chaptersBySubjectId.getOrDefault(subject.getId(), Collections.emptyList());
+
+                    List<ChapterStructureResponseDto> chapterDtos = subjectChapters.stream()
+                            // Pass empty list for topics to keep it lightweight
+                            .map(chapter -> toChapterDto(chapter, Collections.emptyList()))
+                            .collect(Collectors.toList());
+
+                    return toSubjectDto(subject, chapterDtos);
+                })
+                .collect(Collectors.toList());
+
+        return buildClassDto(classEntity, subjectDtos);
+    }
+
     private ClassStructureResponseDto buildClassDto(ClassEntity entity, List<SubjectStructureResponseDto> subjects) {
         return ClassStructureResponseDto.builder()
                 .id(entity.getId())
