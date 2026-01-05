@@ -63,8 +63,38 @@ public class ChapterController {
         return ResponseEntity.ok(chapters);
     }
 
+    @Operation(summary = "Get chapters by status (Admin/Manager)")
+    @GetMapping("/status/{status}")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
+    public ResponseEntity<List<ChapterResponseDto>> getChaptersByStatus(@PathVariable ChapterStatus status) {
+        log.info("Fetching all chapters with status: {}", status);
+        List<ChapterResponseDto> chapters = chapterService.getChaptersByStatus(status);
+        log.debug("Total chapters found: {}", chapters.size());
+
+        return ResponseEntity.ok(chapters);
+    }
+
+    @Operation(summary = "Get public chapter by id")
+    @GetMapping("/{id}/public")
+    public ResponseEntity<ChapterResponseDto> getPublicChapterById(@PathVariable Long id) {
+        log.info("Fetching public chapter by id: {}", id);
+
+        return ResponseEntity.ok(chapterService.getPublicChapter(id));
+    }
+
+    @Operation(summary = "Get all free published chapters (Public)")
+    @GetMapping("/public/free")
+    public ResponseEntity<List<ChapterResponseDto>> getFreeChapters() {
+        log.info("Fetching all free published chapters (public access)");
+        List<ChapterResponseDto> chapters = chapterService.getFreeChapters();
+        log.debug("Total free published chapters found: {}", chapters.size());
+
+        return ResponseEntity.ok(chapters);
+    }
+
     @Operation(summary = "Get chapter by id")
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER', 'TEACHER')")
     public ResponseEntity<ChapterResponseDto> getChapterById(@PathVariable Long id) {
         log.info("Fetching chapter by id: {}", id);
 
@@ -83,9 +113,10 @@ public class ChapterController {
 
     @Operation(summary = "Update a chapter")
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER', 'TEACHER')")
     public ResponseEntity<ChapterResponseDto> updateChapter(@PathVariable Long id, @Valid @RequestBody ChapterRequestDto dto) {
         log.info("Updating chapter with id: {}", id);
-        ChapterResponseDto updatedChapter = chapterService.update(id, dto); //TODO: Change ut to patch . System design maybe we should remove status from here. Have a separate method to change the status
+        ChapterResponseDto updatedChapter = chapterService.update(id, dto); //TODO: Change it to patch . System design: maybe we should remove status from here. Have a separate method to change the status
         log.info("Chapter updated with id: {}", updatedChapter.getId());
 
         return ResponseEntity.ok(updatedChapter);
@@ -136,7 +167,8 @@ public class ChapterController {
     @Operation(summary = "Update chapter status")
     @PatchMapping("/{id}/status")
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
-    public ResponseEntity<ChapterResponseDto> updateStatus(@PathVariable Long id, @RequestParam ChapterStatus status) {
+    public ResponseEntity<ChapterResponseDto> updateStatus(@PathVariable Long id,
+                                                           @RequestParam ChapterStatus status) {
         log.info("Updating status for chapter {} to {}", id, status);
         return ResponseEntity.ok(chapterService.updateStatus(id, status));
     }
@@ -146,6 +178,7 @@ public class ChapterController {
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     public ResponseEntity<ChapterResponseDto> toggleFreeStatus(@PathVariable Long id, @RequestParam boolean isFree) {
         log.info("Toggling free status for chapter {} to {}", id, isFree);
+
         return ResponseEntity.ok(chapterService.toggleFreeStatus(id, isFree));
     }
 

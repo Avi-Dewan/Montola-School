@@ -91,7 +91,32 @@ public interface ChapterService {
      */
     ChapterResponseDto toggleFreeStatus(Long id, boolean isFree);
 
+
     void uploadCoverImage(Long id, byte[] imageBytes);
 
     byte[] getCoverImage(Long id);
+
+    /**
+     * Retrieves chapters by their status.
+     *
+     * @param status the status to filter by
+     * @return list of chapters with the given status
+     */
+    List<ChapterResponseDto> getChaptersByStatus(ChapterStatus status);
+
+    /**
+     * Retrieves a single public chapter by ID.
+     * Throws exception if not found or not published.
+     *
+     * @param id the chapter ID
+     * @return the chapter entity
+     */
+    ChapterResponseDto getPublicChapter(Long id);
+
+    /**
+     * Retrieves all free and published chapters.
+     *
+     * @return list of free published chapters
+     */
+    List<ChapterResponseDto> getFreeChapters();
 }
