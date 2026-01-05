@@ -14,5 +14,6 @@ public interface ChapterMapper {
 
     Chapter toEntity(ChapterRequestDto dto);
 
+    @org.mapstruct.Mapping(target = "author", source = "createdBy")
     ChapterResponseDto toResponseDto(Chapter entity);
 }

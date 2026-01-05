@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ChapterStatisticsDto {
+
     private Long chapterId;
     private Long totalEnrolledStudents;
 }
