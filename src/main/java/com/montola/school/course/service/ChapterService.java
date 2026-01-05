@@ -119,4 +119,20 @@ public interface ChapterService {
      * @return list of free published chapters
      */
     List<ChapterResponseDto> getFreeChapters();
+
+    /**
+     * Retrieves all chapters assigned to a specific teacher.
+     *
+     * @param teacherId the teacher's user ID
+     * @return list of assigned chapters
+     */
+    List<ChapterResponseDto> getAssignedChapters(Long teacherId);
+
+    /**
+     * Retrieves statistics for a chapter.
+     *
+     * @param chapterId the chapter ID
+     * @return statistics DTO
+     */
+    com.montola.school.course.dto.ChapterStatisticsDto getChapterStatistics(Long chapterId);
 }
