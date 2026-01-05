@@ -14,12 +14,16 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -59,8 +63,38 @@ public class ChapterController {
         return ResponseEntity.ok(chapters);
     }
 
+    @Operation(summary = "Get chapters by status (Admin/Manager)")
+    @GetMapping("/status/{status}")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
+    public ResponseEntity<List<ChapterResponseDto>> getChaptersByStatus(@PathVariable ChapterStatus status) {
+        log.info("Fetching all chapters with status: {}", status);
+        List<ChapterResponseDto> chapters = chapterService.getChaptersByStatus(status);
+        log.debug("Total chapters found: {}", chapters.size());
+
+        return ResponseEntity.ok(chapters);
+    }
+
+    @Operation(summary = "Get public chapter by id")
+    @GetMapping("/{id}/public")
+    public ResponseEntity<ChapterResponseDto> getPublicChapterById(@PathVariable Long id) {
+        log.info("Fetching public chapter by id: {}", id);
+
+        return ResponseEntity.ok(chapterService.getPublicChapter(id));
+    }
+
+    @Operation(summary = "Get all free published chapters (Public)")
+    @GetMapping("/public/free")
+    public ResponseEntity<List<ChapterResponseDto>> getFreeChapters() {
+        log.info("Fetching all free published chapters (public access)");
+        List<ChapterResponseDto> chapters = chapterService.getFreeChapters();
+        log.debug("Total free published chapters found: {}", chapters.size());
+
+        return ResponseEntity.ok(chapters);
+    }
+
     @Operation(summary = "Get chapter by id")
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER', 'TEACHER')")
     public ResponseEntity<ChapterResponseDto> getChapterById(@PathVariable Long id) {
         log.info("Fetching chapter by id: {}", id);
 
@@ -79,9 +113,10 @@ public class ChapterController {
 
     @Operation(summary = "Update a chapter")
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER', 'TEACHER')")
     public ResponseEntity<ChapterResponseDto> updateChapter(@PathVariable Long id, @Valid @RequestBody ChapterRequestDto dto) {
         log.info("Updating chapter with id: {}", id);
-        ChapterResponseDto updatedChapter = chapterService.update(id, dto); //TODO: Change ut to patch . System design maybe we should remove status from here. Have a separate method to change the status
+        ChapterResponseDto updatedChapter = chapterService.update(id, dto); //TODO: Change it to patch . System design: maybe we should remove status from here. Have a separate method to change the status
         log.info("Chapter updated with id: {}", updatedChapter.getId());
 
         return ResponseEntity.ok(updatedChapter);
@@ -132,7 +167,8 @@ public class ChapterController {
     @Operation(summary = "Update chapter status")
     @PatchMapping("/{id}/status")
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
-    public ResponseEntity<ChapterResponseDto> updateStatus(@PathVariable Long id, @RequestParam ChapterStatus status) {
+    public ResponseEntity<ChapterResponseDto> updateStatus(@PathVariable Long id,
+                                                           @RequestParam ChapterStatus status) {
         log.info("Updating status for chapter {} to {}", id, status);
         return ResponseEntity.ok(chapterService.updateStatus(id, status));
     }
@@ -142,6 +178,45 @@ public class ChapterController {
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     public ResponseEntity<ChapterResponseDto> toggleFreeStatus(@PathVariable Long id, @RequestParam boolean isFree) {
         log.info("Toggling free status for chapter {} to {}", id, isFree);
+
         return ResponseEntity.ok(chapterService.toggleFreeStatus(id, isFree));
+    }
+
+    @Operation(summary = "Upload chapter cover image")
+    @PostMapping(value = "/{id}/cover-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
+    public ResponseEntity<Void> uploadCoverImage(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
+        log.info("Uploading cover image for chapter {}", id);
+
+        try {
+            if (file.getSize() > 500 * 1024) {
+                 throw new IllegalArgumentException("File size exceeds 500KB limit");
+            }
+
+            chapterService.uploadCoverImage(id, file.getBytes());
+
+            return ResponseEntity.ok().build();
+
+        } catch (IOException e) {
+            log.error("Failed to read file", e);
+            throw new RuntimeException("Failed to upload image", e);
+        }
+    }
+
+    @Operation(summary = "Get chapter cover image")
+    @GetMapping("/{id}/cover-image")
+    public ResponseEntity<byte[]> getCoverImage(@PathVariable Long id) {
+        log.info("Fetching cover image for chapter {}", id);
+        byte[] image = chapterService.getCoverImage(id);
+
+        if (image == null || image.length == 0) {
+            return ResponseEntity.notFound().build();
+        }
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.IMAGE_JPEG);
+        headers.setCacheControl("max-age=31536000"); // Cache for 1 year
+
+        return new ResponseEntity<>(image, headers, HttpStatus.OK);
     }
 }

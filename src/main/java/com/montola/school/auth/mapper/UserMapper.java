@@ -4,6 +4,7 @@ import com.montola.school.auth.dto.UserRegisterRequest;
 import com.montola.school.auth.dto.UserResponse;
 import com.montola.school.auth.model.User;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 /**
  * @author avidewan
@@ -14,5 +15,6 @@ public interface UserMapper {
 
     User toEntity(UserRegisterRequest request);
 
+    @Mapping(target = "hasProfilePicture", expression = "java(user.getProfilePhoto() != null)")
     UserResponse toResponse(User user);
 }

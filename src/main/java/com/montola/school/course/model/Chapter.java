@@ -6,6 +6,8 @@ import com.montola.school.course.enums.ChapterStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.util.List;
 
@@ -36,6 +38,10 @@ public class Chapter extends Persistent {
 
     @Column(columnDefinition = "TEXT")
     private String description;
+
+    @Column(name = "cover_image")
+    @JdbcTypeCode(SqlTypes.BINARY)
+    private byte[] coverImage;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)

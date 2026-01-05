@@ -19,4 +19,8 @@ public interface ContentProgressRepository extends JpaRepository<ContentProgress
     Optional<ContentProgress> findByUserIdAndContentItemId(Long userId, Long contentItemId);
 
     List<ContentProgress> findByUserId(Long userId);
+
+    long countByUserIdAndContentItem_Topic_Chapter_IdAndIsCompletedTrue(Long userId, Long chapterId);
+
+    List<ContentProgress> findByUserIdAndContentItem_Topic_Chapter_Id(Long userId, Long chapterId);
 }

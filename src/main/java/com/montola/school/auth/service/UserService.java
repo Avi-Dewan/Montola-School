@@ -6,6 +6,7 @@ import com.montola.school.auth.dto.UserRegisterRequest;
 import com.montola.school.auth.enums.Role;
 import com.montola.school.auth.model.User;
 import com.montola.school.auth.security.CustomUserDetails;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
@@ -147,4 +148,8 @@ public interface UserService {
      * @throws IllegalStateException if the user is not authenticated.
      */
     User getCurrentUser();
+
+    void updateProfilePicture(Long userId, MultipartFile file);
+
+    byte[] getProfilePicture(Long userId);
 }

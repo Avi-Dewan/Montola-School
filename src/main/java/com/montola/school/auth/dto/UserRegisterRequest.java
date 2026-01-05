@@ -20,6 +20,9 @@ public class UserRegisterRequest {
     @NotBlank
     private String email;
 
+    @NotBlank
+    private String fullName;
+
     private String phone;
 
     @NotBlank
