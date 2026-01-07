@@ -9,6 +9,9 @@ import jakarta.validation.constraints.NotEmpty;
 import lombok.Getter;
 import lombok.Setter;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import java.util.Set;
 
 import static com.montola.school.auth.enums.Role.*;
@@ -33,6 +36,9 @@ public class User extends Persistent {
     @NotBlank
     private String email;
 
+    @Column(name = "full_name")
+    private String fullName;
+
     @Column(nullable = false)
     @NotBlank
     private String passwordHash;
@@ -47,6 +53,10 @@ public class User extends Persistent {
     @Column(name = "role", length = 50)
     @NotEmpty
     private Set<Role> roles;
+
+    @JdbcTypeCode(SqlTypes.BINARY)
+    @Column(name = "profile_photo")
+    private byte[] profilePhoto;
 
     public boolean isAdminOrManager() {
         return roles.contains(ADMIN) || roles.contains(MANAGER);

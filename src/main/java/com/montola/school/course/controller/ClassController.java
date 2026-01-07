@@ -100,4 +100,12 @@ public class ClassController {
 
         return ResponseEntity.ok(courseStructureService.getClassStructure(id));
     }
+
+    @Operation(summary = "Get partial course structure (Class -> Subject -> Chapter) for public catalog")
+    @GetMapping("/{id}/public-structure")
+    public ResponseEntity<ClassStructureResponseDto> getPublicClassStructure(@PathVariable Long id) {
+        log.info("Fetching public structure for class id: {}", id);
+
+        return ResponseEntity.ok(courseStructureService.getPublicClassStructure(id));
+    }
 }

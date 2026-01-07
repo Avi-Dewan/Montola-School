@@ -1,5 +1,6 @@
 package com.montola.school.course.repository;
 
+import com.montola.school.course.enums.ChapterStatus;
 import com.montola.school.course.model.Chapter;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -16,4 +17,8 @@ public interface ChapterRepository extends JpaRepository<Chapter, Long> {
     List<Chapter> findBySubjectId(Long subjectId);
 
     List<Chapter> findBySubjectIdIn(List<Long> subjectIds);
+
+    List<Chapter> findAllByStatus(ChapterStatus status);
+
+    List<Chapter> findAllByStatusAndIsFreeTrue(ChapterStatus status);
 }

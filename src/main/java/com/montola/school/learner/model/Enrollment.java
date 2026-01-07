@@ -3,6 +3,8 @@ package com.montola.school.learner.model;
 import com.montola.school.auth.model.User;
 import com.montola.school.common.model.Persistent;
 import com.montola.school.course.model.Chapter;
+import com.montola.school.course.model.ContentItem;
+
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -46,4 +48,8 @@ public class Enrollment extends Persistent {
 
     @Column(name = "is_completed")
     private boolean isCompleted = false;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "last_completed_content_id")
+    private ContentItem lastCompletedContent;
 }

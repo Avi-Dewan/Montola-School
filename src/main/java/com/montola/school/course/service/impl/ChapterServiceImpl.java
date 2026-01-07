@@ -206,4 +206,63 @@ public class ChapterServiceImpl implements ChapterService {
                 })
                 .orElseThrow(() -> new ResourceNotFoundException("chapter.notfound"));
     }
+
+    @Override
+    @Transactional
+    public void uploadCoverImage(Long id, byte[] imageBytes) {
+        log.info("Uploading cover image for chapter {}", id);
+        Chapter chapter = chapterRepository.findById(id)
+                .filter(c -> !c.isDeleted())
+                .orElseThrow(() -> new ResourceNotFoundException("chapter.notfound"));
+
+        chapter.setCoverImage(imageBytes);
+
+        chapterRepository.save(chapter);
+
+        log.info("Cover image uploaded for chapter {}", id);
+    }
+
+    @Override
+    public byte[] getCoverImage(Long id) {
+        log.debug("Fetching cover image for chapter {}", id);
+
+        Chapter chapter = chapterRepository.findById(id)
+                .filter(c -> !c.isDeleted())
+                .orElseThrow(() -> new ResourceNotFoundException("chapter.notfound"));
+
+        return chapter.getCoverImage();
+    }
+
+    @Override
+    public List<ChapterResponseDto> getChaptersByStatus(ChapterStatus status) {
+        log.debug("Fetching chapters with status: {}", status);
+
+        return chapterRepository.findAllByStatus(status)
+                .stream()
+                .filter(c -> !c.isDeleted())
+                .map(chapterMapper::toResponseDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public ChapterResponseDto getPublicChapter(Long id) {
+        log.debug("Fetching public chapter by ID: {}", id);
+
+        return chapterRepository.findById(id)
+                .filter(c -> !c.isDeleted())
+                .filter(c -> c.getStatus() == ChapterStatus.PUBLISHED)
+                .map(chapterMapper::toResponseDto)
+                .orElseThrow(() -> new ResourceNotFoundException("chapter.notfound"));
+    }
+
+    @Override
+    public List<ChapterResponseDto> getFreeChapters() {
+        log.debug("Fetching all free published chapters");
+
+        return chapterRepository.findAllByStatusAndIsFreeTrue(ChapterStatus.PUBLISHED)
+                .stream()
+                .filter(c -> !c.isDeleted())
+                .map(chapterMapper::toResponseDto)
+                .collect(Collectors.toList());
+    }
 }

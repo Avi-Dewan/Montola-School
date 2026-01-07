@@ -1,6 +1,5 @@
 package com.montola.school.common.security;
 
-
 import com.montola.school.common.exception.*;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;

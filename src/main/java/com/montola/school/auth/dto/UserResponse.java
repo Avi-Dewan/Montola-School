@@ -17,9 +17,13 @@ public class UserResponse {
 
     private String email;
 
+    private String fullName;
+
     private String phone;
 
     private Set<Role> roles;
+
+    private boolean hasProfilePicture;
 
     private LocalDateTime createdAt;
 

@@ -19,7 +19,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -216,6 +218,38 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<User> findAll() {
         return userRepository.findAll();
+    }
+
+    @Override
+    @Transactional
+    public void updateProfilePicture(Long userId, MultipartFile file) {
+        log.info("Updating profile picture for user id: {}", userId);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("user.notfound"));
+
+        try {
+            user.setProfilePhoto(file.getBytes());
+            userRepository.save(user);
+            log.debug("Successfully updated profile picture for user id: {}", userId);
+
+        } catch (IOException e) {
+            log.error("Failed to read profile picture file", e);
+            throw new RuntimeException("Failed to upload profile picture", e);
+        }
+    }
+
+    @Override
+    public byte[] getProfilePicture(Long userId) {
+        log.info("Fetching profile picture for user id: {}", userId);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("user.notfound"));
+
+        if (user.getProfilePhoto() == null) {
+            log.warn("Profile picture not found for user id: {}", userId);
+            throw new ResourceNotFoundException("profile.picture.notfound");
+        }
+
+        return user.getProfilePhoto();
     }
 
     private User handleNewUser(UserRegisterRequest request) {
