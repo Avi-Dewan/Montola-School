@@ -23,4 +23,6 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Long> {
     List<Enrollment> findByUserId(Long userId);
 
     List<Enrollment> findByChapterId(Long chapterId);
+
+    long countByChapterId(Long chapterId);
 }
