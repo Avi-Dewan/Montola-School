@@ -38,7 +38,6 @@ public class ProgressServiceImpl implements ProgressService {
     private final ContentProgressRepository progressRepository;
     private final UserRepository userRepository;
     private final ContentItemRepository contentItemRepository;
-
     private final EnrollmentRepository enrollmentRepository;
 
     @Override
@@ -66,7 +65,6 @@ public class ProgressServiceImpl implements ProgressService {
         ContentProgress progress = getOrCreateProgress(userId, contentItemId);
         progress.setQuizScore(score);
         progress.setLastAccessed(LocalDateTime.now());
-
         progress.setCompleted(true);
 
         progress = progressRepository.save(progress);

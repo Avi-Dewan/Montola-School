@@ -1,13 +1,11 @@
 package com.montola.school.course.service.impl;
 
 import com.montola.school.common.exception.ResourceNotFoundException;
-
 import java.util.List;
 import com.montola.school.course.dto.GooglePdfContentResponseDto;
 import com.montola.school.course.dto.LectureResponseDto;
 import com.montola.school.course.dto.QuizResponseDto;
 import com.montola.school.course.enums.ContentItemType;
-
 import com.montola.school.course.model.Chapter;
 import com.montola.school.course.model.ContentItem;
 import com.montola.school.course.repository.ContentItemRepository;
@@ -15,7 +13,6 @@ import com.montola.school.course.service.ContentAccessService;
 import com.montola.school.course.service.GooglePdfContentService;
 import com.montola.school.course.service.LectureService;
 import com.montola.school.course.service.QuizService;
-
 import com.montola.school.learner.model.ContentProgress;
 import com.montola.school.learner.repository.ContentProgressRepository;
 import com.montola.school.learner.repository.EnrollmentRepository;
@@ -53,7 +50,7 @@ public class ContentAccessServiceImpl implements ContentAccessService {
         ContentItem contentItem = contentItemRepository.findById(contentItemId)
                 .orElseThrow(() -> new ResourceNotFoundException("course.content.notfound"));
 
-
+        // Get chapter ID from content item hierarchy
         Chapter chapter = contentItem.getTopic().getChapter();
 
         checkAccess(userId, isAdminOrManagerOrTeacher, chapter, contentItem);

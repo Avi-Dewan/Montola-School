@@ -33,7 +33,6 @@ import java.util.Map;
 public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
     private final MessageSource messageSource;
-
     private final ObjectMapper objectMapper;
 
     /**

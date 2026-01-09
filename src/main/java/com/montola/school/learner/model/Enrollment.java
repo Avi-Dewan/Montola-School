@@ -4,7 +4,6 @@ import com.montola.school.auth.model.User;
 import com.montola.school.common.model.Persistent;
 import com.montola.school.course.model.Chapter;
 import com.montola.school.course.model.ContentItem;
-
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;

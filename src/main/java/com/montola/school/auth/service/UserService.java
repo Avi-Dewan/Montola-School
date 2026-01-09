@@ -6,7 +6,6 @@ import com.montola.school.auth.dto.UserRegisterRequest;
 import com.montola.school.auth.enums.Role;
 import com.montola.school.auth.model.User;
 import com.montola.school.auth.security.CustomUserDetails;
-
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;

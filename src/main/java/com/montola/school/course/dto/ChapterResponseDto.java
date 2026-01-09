@@ -14,4 +14,13 @@ public class ChapterResponseDto {
     private String videoId;
     private Double price;
     private boolean isFree;
+    private AuthorDto author;
+
+    @Data
+    public static class AuthorDto {
+        private Long id;
+        private String firstName;
+        private String lastName;
+        private String email;
+    }
 }

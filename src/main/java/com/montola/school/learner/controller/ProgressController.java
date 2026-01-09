@@ -1,7 +1,6 @@
 package com.montola.school.learner.controller;
 
 import com.montola.school.auth.security.CustomUserDetails;
-
 import com.montola.school.learner.dto.ChapterProgressResponseDto;
 import com.montola.school.learner.dto.ContentProgressResponseDto;
 import com.montola.school.learner.service.ProgressService;

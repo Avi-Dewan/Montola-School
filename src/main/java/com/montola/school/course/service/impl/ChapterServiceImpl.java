@@ -2,6 +2,7 @@ package com.montola.school.course.service.impl;
 
 import com.montola.school.course.dto.ChapterRequestDto;
 import com.montola.school.course.dto.ChapterResponseDto;
+import com.montola.school.course.dto.ChapterStatisticsDto;
 import com.montola.school.course.mapper.ChapterMapper;
 import com.montola.school.course.model.Chapter;
 import com.montola.school.course.repository.ChapterRepository;
@@ -16,6 +17,7 @@ import com.montola.school.auth.service.UserService;
 import com.montola.school.auth.model.User;
 import com.montola.school.course.enums.ChapterStatus;
 import com.montola.school.course.service.TopicService;
+import com.montola.school.learner.repository.EnrollmentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -44,6 +46,7 @@ public class ChapterServiceImpl implements ChapterService {
     private final ChapterMapper chapterMapper;
     private final TopicService topicService;
     private final ChapterTeacherRepository chapterTeacherRepository;
+    private final EnrollmentRepository enrollmentRepository;
 
     private ChapterAuthorizationService chapterAuthorizationService;
     private final UserService userService;
@@ -264,5 +267,33 @@ public class ChapterServiceImpl implements ChapterService {
                 .filter(c -> !c.isDeleted())
                 .map(chapterMapper::toResponseDto)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<ChapterResponseDto> getAssignedChapters(Long teacherId) {
+        log.debug("Fetching chapters assigned to teacher {}", teacherId);
+
+        return chapterTeacherRepository.findByTeacherId(teacherId)
+                .stream()
+                .map(ChapterTeacher::getChapter)
+                .filter(c -> !c.isDeleted())
+                .map(chapterMapper::toResponseDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public ChapterStatisticsDto getChapterStatistics(Long chapterId) {
+        log.debug("Fetching statistics for chapter {}", chapterId);
+
+        if (!chapterRepository.existsById(chapterId)) {
+            throw new ResourceNotFoundException("chapter.notfound");
+        }
+
+        long totalEnrolled = enrollmentRepository.countByChapterId(chapterId);
+
+        return com.montola.school.course.dto.ChapterStatisticsDto.builder()
+                .chapterId(chapterId)
+                .totalEnrolledStudents(totalEnrolled)
+                .build();
     }
 }
