@@ -1,5 +1,6 @@
 package com.montola.school.common.security;
 
+import lombok.Getter;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -8,28 +9,29 @@ import java.util.List;
  * @author avidewan
  * @date 9/2/25
  */
+@Getter
 @Component
 public class SecurityProperties {
 
-    public List<String> getWhiteList() {
-        return List.of(
-                "/api/auth/login",
-                "/api/auth/register",
-                "/api/auth/activate",
-                "/api/auth/resend-activation",
-                "/api/auth/forgot-password",
-                "/api/auth/reset-password",
-                "/api/v1/classes",
-                "/api/v1/classes/*/public-structure",
-                "/api/v1/chapters/*/cover-image",
-                "/api/v1/chapters/public/free",
-                "/api/v1/chapters/*/public",
-                "/api/v1/featured-chapters",
-                "/v3/api-docs/**",
-                "/swagger-ui/**",
-                "/swagger-ui.html"
-        );
-    }
+    public record WhitelistRule(String pattern, String method) {}
+
+    private final List<WhitelistRule> whiteList = List.of(
+            new WhitelistRule("/api/auth/login", "POST"),
+            new WhitelistRule("/api/auth/register", "POST"),
+            new WhitelistRule("/api/auth/activate", "GET"),
+            new WhitelistRule("/api/auth/resend-activation", "POST"),
+            new WhitelistRule("/api/auth/forgot-password", "POST"),
+            new WhitelistRule("/api/auth/reset-password", "POST"),
+            new WhitelistRule("/api/v1/classes", "GET"),
+            new WhitelistRule("/api/v1/classes/*/public-structure", "GET"),
+            new WhitelistRule("/api/v1/chapters/*/cover-image", "GET"),
+            new WhitelistRule("/api/v1/chapters/public/free", "GET"),
+            new WhitelistRule("/api/v1/chapters/*/public", "GET"),
+            new WhitelistRule("/api/v1/featured-chapters", "GET"),
+            new WhitelistRule("/v3/api-docs/**", "GET"),
+            new WhitelistRule("/swagger-ui/**", "GET"),
+            new WhitelistRule("/swagger-ui.html", "GET")
+    );
 
     public List<String> getCorsAllowedOrigins() {
         return List.of(

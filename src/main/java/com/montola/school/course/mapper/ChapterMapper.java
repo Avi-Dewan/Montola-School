@@ -14,6 +14,6 @@ public interface ChapterMapper {
 
     Chapter toEntity(ChapterRequestDto dto);
 
-    @org.mapstruct.Mapping(target = "author", source = "createdBy")
+    @org.mapstruct.Mapping(target = "author", source = "createdBy") // TODO: is he author ? Normally admin creates chapter, we need teacher which is totally separate repo
     ChapterResponseDto toResponseDto(Chapter entity);
 }

@@ -10,6 +10,7 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -100,13 +101,16 @@ public class SecurityConfig {
                 )
                 .sessionManagement(sm ->
                                 sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                securityProperties.getWhiteList().
-                                        toArray(String[]::new)
-                        ).permitAll()
-                        .anyRequest().authenticated()
-                )
+                .authorizeHttpRequests(auth -> {
+                    securityProperties.getWhiteList().forEach(rule -> {
+                        if (rule.method() != null) {
+                            auth.requestMatchers(HttpMethod.valueOf(rule.method()), rule.pattern()).permitAll();
+                        } else {
+                            auth.requestMatchers(rule.pattern()).permitAll();
+                        }
+                    });
+                    auth.anyRequest().authenticated();
+                })
                 .exceptionHandling(ex-> ex
                         .authenticationEntryPoint(authenticationEntryPoint)
                         .accessDeniedHandler(accessDeniedHandler))

@@ -14,10 +14,10 @@ public class ChapterResponseDto {
     private String videoId;
     private Double price;
     private boolean isFree;
-    private AuthorDto author;
+    private AuthorDto author; // TODO: teacher
 
     @Data
-    public static class AuthorDto {
+    public static class AuthorDto { // TODO: TeacherDto
         private Long id;
         private String firstName;
         private String lastName;
