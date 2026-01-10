@@ -3,6 +3,8 @@ package com.montola.school.course.dto;
 import com.montola.school.course.enums.ChapterStatus;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 public class ChapterResponseDto {
     private Long id;
@@ -14,13 +16,12 @@ public class ChapterResponseDto {
     private String videoId;
     private Double price;
     private boolean isFree;
-    private AuthorDto author; // TODO: teacher
+    private List<TeacherDto> teachers;
 
     @Data
-    public static class AuthorDto { // TODO: TeacherDto
+    public static class TeacherDto {
         private Long id;
-        private String firstName;
-        private String lastName;
+        private String fullName;
         private String email;
     }
 }
