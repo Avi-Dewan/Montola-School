@@ -17,8 +17,9 @@ public class SecurityProperties {
 
     private final List<WhitelistRule> whiteList = List.of(
             new WhitelistRule("/api/auth/login", "POST"),
+            new WhitelistRule("/api/auth/refresh-token", "POST"),
             new WhitelistRule("/api/auth/register", "POST"),
-            new WhitelistRule("/api/auth/activate", "GET"),
+            new WhitelistRule("/api/auth/activate", "POST"),
             new WhitelistRule("/api/auth/resend-activation", "POST"),
             new WhitelistRule("/api/auth/forgot-password", "POST"),
             new WhitelistRule("/api/auth/reset-password", "POST"),

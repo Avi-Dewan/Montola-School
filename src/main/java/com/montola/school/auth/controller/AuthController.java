@@ -3,7 +3,9 @@ package com.montola.school.auth.controller;
 import com.montola.school.auth.dto.*;
 import com.montola.school.auth.mapper.UserMapper;
 import com.montola.school.auth.model.User;
+import com.montola.school.auth.security.CustomUserDetails;
 import com.montola.school.auth.service.AuthService;
+import com.montola.school.auth.service.RefreshTokenService;
 import com.montola.school.auth.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -12,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 
@@ -28,8 +31,8 @@ public class AuthController {
 
     private final UserService userService;
     private final UserMapper userMapper;
-
     private final AuthService authService;
+    private final RefreshTokenService refreshTokenService;
 
     @Operation(summary = "Login and receive a JWT")
     @PostMapping("/login")
@@ -37,6 +40,27 @@ public class AuthController {
         log.info("Login attempt for email={}", request.email());
         AuthResponse response = authService.login(request);
         log.info("Login successful for email={}", request.email());
+
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "Logout user")
+    @PostMapping("/logout")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Void> logout(@AuthenticationPrincipal CustomUserDetails currentUser) {
+        log.info("Logout requested for user ID: {}", currentUser.getId());
+        authService.logout(currentUser.getId());
+        log.info("Logout successful for user ID: {}", currentUser.getId());
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Refresh Access Token")
+    @PostMapping("/refresh-token")
+    public ResponseEntity<RefreshTokenResponse> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
+        log.info("Refresh token request received");
+        RefreshTokenResponse response = refreshTokenService.refreshToken(request);
+        log.info("Token refreshed successfully");
 
         return ResponseEntity.ok(response);
     }

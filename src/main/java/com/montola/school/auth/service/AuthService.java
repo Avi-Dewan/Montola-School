@@ -26,4 +26,11 @@ public interface AuthService {
      *              if the user exists but is not activated.
      */
     public AuthResponse login(LoginRequest loginRequest);
+
+    /**
+     * Handles logout by invalidating the refresh token.
+     *
+     * @param userId the ID of the user logging out.
+     */
+    void logout(Long userId);
 }

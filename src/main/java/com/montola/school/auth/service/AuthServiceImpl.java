@@ -2,6 +2,8 @@ package com.montola.school.auth.service;
 
 import com.montola.school.auth.dto.LoginRequest;
 import com.montola.school.auth.dto.AuthResponse;
+import com.montola.school.auth.enums.Role;
+import com.montola.school.auth.model.RefreshToken;
 import com.montola.school.auth.model.User;
 import com.montola.school.auth.repository.UserRepository;
 import com.montola.school.common.exception.InvalidCredentialsException;
@@ -17,6 +19,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author avidewan
@@ -30,7 +34,9 @@ public class AuthServiceImpl implements AuthService {
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
     private final JwtService jwtService;
+    private final RefreshTokenService refreshTokenService;
 
+    @Override
     public AuthResponse login(LoginRequest request) {
         log.info("Login attempt for email: {}", request.email());
 
@@ -53,12 +59,26 @@ public class AuthServiceImpl implements AuthService {
             throw new UserNotActivatedException();
         }
 
-        String token = jwtService.generateToken(
+        String accessToken = jwtService.generateToken(
                 user.getEmail(),
                 Map.of( "roles", user.getRoles())
         );
-        log.info("Generated JWT for email: {}", user.getEmail());
+        
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getId());
+        
+        log.info("Generated JWT and Refresh Token for email: {}", user.getEmail());
 
-        return new AuthResponse(token, user.getEmail());
+        Set<String> roles = user.getRoles().stream()
+                .map(Role::name)
+                .collect(Collectors.toSet());
+
+        return new AuthResponse(accessToken, refreshToken.getToken(), user.getEmail(), user.getFullName(), roles);
+    }
+
+    @Override
+    public void logout(Long userId) {
+        log.info("Logout requested for user ID: {}", userId);
+        refreshTokenService.deleteByUserId(userId);
+        log.info("Logout successful for user ID: {}", userId);
     }
 }
