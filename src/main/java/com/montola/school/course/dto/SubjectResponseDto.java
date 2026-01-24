@@ -9,4 +9,5 @@ public class SubjectResponseDto {
     private String description;
     private int orderIndex;
     private Long classId;
+    private String className;
 }

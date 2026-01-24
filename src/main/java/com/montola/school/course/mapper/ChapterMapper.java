@@ -24,9 +24,11 @@ public interface ChapterMapper {
     @Mapping(target = "createdBy", ignore = true) // CreatedBy is set in the service layer
     @Mapping(target = "coverImage", ignore = true) // Cover image is handled separately
     @Mapping(target = "topics", ignore = true) // Topics are handled separately
+    @Mapping(target = "teachers", ignore = true) // Teachers are handled separately
     Chapter toEntity(ChapterRequestDto dto);
 
     @Mapping(target = "subjectId", source = "subject.id")
+    @Mapping(target = "subjectName", source = "subject.name")
     @Mapping(target = "teachers", source = "teachers", qualifiedByName = "mapTeachers")
     ChapterResponseDto toResponseDto(Chapter entity);
 

@@ -13,6 +13,7 @@ public class ChapterResponseDto {
     private ChapterStatus status;
     private int orderIndex;
     private Long subjectId;
+    private String subjectName;
     private String videoId;
     private Double price;
     private boolean isFree;
