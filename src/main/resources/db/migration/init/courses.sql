@@ -97,5 +97,3 @@ CREATE TABLE content_items (
 CREATE INDEX idx_subjects_order_index ON subjects(order_index);
 CREATE INDEX idx_chapters_order_index ON chapters(order_index);
 CREATE INDEX idx_topics_order_index ON topics(order_index);
-
-CREATE UNIQUE INDEX uq_content_item_topic_order ON content_items (topic_id, order_index);
