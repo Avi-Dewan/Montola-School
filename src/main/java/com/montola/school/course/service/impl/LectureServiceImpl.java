@@ -103,6 +103,7 @@ public class LectureServiceImpl implements LectureService {
                 });
         
         existing.getContentItem().setTitle(dto.getTitle());
+        existing.getContentItem().setOrderIndex(dto.getOrderIndex());
         existing.setVideoId(dto.getVideoId());
         existing.setContent(dto.getContent());
 
@@ -119,8 +120,13 @@ public class LectureServiceImpl implements LectureService {
         lectureRepository.findById(id).ifPresent(entity -> {
             entity.setDeleted(true);
             lectureRepository.save(entity);
-            lectureRepository.save(entity);
-            lectureRepository.save(entity);
+
+            ContentItem contentItem = entity.getContentItem();
+            if (contentItem != null) {
+                log.debug("Soft deleting associated content item with ID: {}", contentItem.getId());
+                contentItem.setDeleted(true);
+                contentItemRepository.save(contentItem);
+            }
         });
     }
 
@@ -133,5 +139,35 @@ public class LectureServiceImpl implements LectureService {
                 .orElseThrow(() -> new ResourceNotFoundException("lecture.notfound"));
                 
         return lectureMapper.toResponseDto(entity);
+    }
+
+    @Override
+    @Transactional
+    public LectureResponseDto updateByContentItemId(Long contentItemId, LectureRequestDto dto) {
+        log.info("Updating lecture with content item ID: {}", contentItemId);
+
+        Lecture existing = lectureRepository.findByContentItem_Id(contentItemId)
+                .filter(l -> !l.isDeleted())
+                .orElseThrow(() -> new ResourceNotFoundException("lecture.notfound"));
+
+        return update(existing.getId(), dto);
+    }
+
+    @Override
+    @Transactional
+    public void deleteByContentItemId(Long contentItemId) {
+        log.warn("Soft deleting lecture with content item ID: {}", contentItemId);
+
+        lectureRepository.findByContentItem_Id(contentItemId).ifPresent(entity -> {
+            entity.setDeleted(true);
+            lectureRepository.save(entity);
+
+            ContentItem contentItem = entity.getContentItem();
+            if (contentItem != null) {
+                log.debug("Soft deleting associated content item with ID: {}", contentItem.getId());
+                contentItem.setDeleted(true);
+                contentItemRepository.save(contentItem);
+            }
+        });
     }
 }

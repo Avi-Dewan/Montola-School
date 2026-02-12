@@ -61,4 +61,20 @@ public interface LectureService {
      * @return the lecture response DTO
      */
     LectureResponseDto getByContentItemId(Long contentItemId);
+
+    /**
+     * Updates an existing lecture by its associated content item ID.
+     *
+     * @param contentItemId the content item ID
+     * @param updated the updated details
+     * @return the updated lecture entity
+     */
+    LectureResponseDto updateByContentItemId(Long contentItemId, LectureRequestDto updated);
+
+    /**
+     * Soft deletes a lecture by its associated content item ID.
+     *
+     * @param contentItemId the content item ID
+     */
+    void deleteByContentItemId(Long contentItemId);
 }

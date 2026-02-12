@@ -102,6 +102,7 @@ public class GooglePdfContentServiceImpl implements GooglePdfContentService {
                 });
 
         existing.getContentItem().setTitle(dto.getTitle());
+        existing.getContentItem().setOrderIndex(dto.getOrderIndex());
         existing.setGoogleFileId(dto.getGoogleFileId());
         existing.setPageCount(dto.getPageCount());
 
@@ -118,6 +119,13 @@ public class GooglePdfContentServiceImpl implements GooglePdfContentService {
         googlePdfContentRepository.findById(id).ifPresent(entity -> {
             entity.setDeleted(true);
             googlePdfContentRepository.save(entity);
+
+            ContentItem contentItem = entity.getContentItem();
+            if (contentItem != null) {
+                log.debug("Soft deleting associated content item with ID: {}", contentItem.getId());
+                contentItem.setDeleted(true);
+                contentItemRepository.save(contentItem);
+            }
         });
     }
 
@@ -130,5 +138,35 @@ public class GooglePdfContentServiceImpl implements GooglePdfContentService {
                 .orElseThrow(() -> new ResourceNotFoundException("google.pdf.content.notfound"));
 
         return googlePdfContentMapper.toResponseDto(entity);
+    }
+
+    @Override
+    @Transactional
+    public GooglePdfContentResponseDto updateByContentItemId(Long contentItemId, GooglePdfContentRequestDto dto) {
+        log.info("Updating Google PDF content with content item ID: {}", contentItemId);
+
+        GooglePdfContent existing = googlePdfContentRepository.findByContentItem_Id(contentItemId)
+                .filter(g -> !g.isDeleted())
+                .orElseThrow(() -> new ResourceNotFoundException("google.pdf.content.notfound"));
+
+        return update(existing.getId(), dto);
+    }
+
+    @Override
+    @Transactional
+    public void deleteByContentItemId(Long contentItemId) {
+        log.warn("Soft deleting Google PDF content with content item ID: {}", contentItemId);
+
+        googlePdfContentRepository.findByContentItem_Id(contentItemId).ifPresent(entity -> {
+            entity.setDeleted(true);
+            googlePdfContentRepository.save(entity);
+
+            ContentItem contentItem = entity.getContentItem();
+            if (contentItem != null) {
+                log.debug("Soft deleting associated content item with ID: {}", contentItem.getId());
+                contentItem.setDeleted(true);
+                contentItemRepository.save(contentItem);
+            }
+        });
     }
 }

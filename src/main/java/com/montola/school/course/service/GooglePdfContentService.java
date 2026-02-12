@@ -61,4 +61,20 @@ public interface GooglePdfContentService {
      * @return the Google PDF content response DTO
      */
     GooglePdfContentResponseDto getByContentItemId(Long contentItemId);
+
+    /**
+     * Updates an existing Google PDF content by its associated content item ID.
+     *
+     * @param contentItemId the content item ID
+     * @param updated the updated details
+     * @return the updated Google PDF content entity
+     */
+    GooglePdfContentResponseDto updateByContentItemId(Long contentItemId, GooglePdfContentRequestDto updated);
+
+    /**
+     * Soft deletes a Google PDF content by its associated content item ID.
+     *
+     * @param contentItemId the content item ID
+     */
+    void deleteByContentItemId(Long contentItemId);
 }

@@ -124,6 +124,13 @@ public class QuizServiceImpl implements QuizService {
         quizRepository.findById(id).ifPresent(entity -> {
             entity.setDeleted(true);
             quizRepository.save(entity);
+
+            ContentItem contentItem = entity.getContentItem();
+            if (contentItem != null) {
+                log.debug("Soft deleting associated content item with ID: {}", contentItem.getId());
+                contentItem.setDeleted(true);
+                contentItemRepository.save(contentItem);
+            }
         });
     }
 
@@ -148,6 +155,24 @@ public class QuizServiceImpl implements QuizService {
                 .orElseThrow(() -> new ResourceNotFoundException("quiz.notfound"));
 
         return update(existing.getId(), dto);
+    }
+
+    @Override
+    @Transactional
+    public void deleteByContentItemId(Long contentItemId) {
+        log.warn("Soft deleting quiz with content item ID: {}", contentItemId);
+
+        quizRepository.findByContentItem_Id(contentItemId).ifPresent(entity -> {
+            entity.setDeleted(true);
+            quizRepository.save(entity);
+
+            ContentItem contentItem = entity.getContentItem();
+            if (contentItem != null) {
+                log.debug("Soft deleting associated content item with ID: {}", contentItem.getId());
+                contentItem.setDeleted(true);
+                contentItemRepository.save(contentItem);
+            }
+        });
     }
 
     @Override
