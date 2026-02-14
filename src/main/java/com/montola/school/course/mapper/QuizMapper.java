@@ -33,7 +33,10 @@ public interface QuizMapper {
     QuizQuestionResponseDto toResponseDto(QuizQuestion entity);
 
     // Option Mappings
+    @Mapping(source = "correct", target = "correct")
     QuizOption toEntity(QuizOptionRequestDto dto);
+
+    @Mapping(source = "correct", target = "correct")
     QuizOptionResponseDto toResponseDto(QuizOption entity);
 
     // Written Answer Mappings
