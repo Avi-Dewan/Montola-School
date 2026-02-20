@@ -71,4 +71,14 @@ public class PaymentController {
 
         return ResponseEntity.ok(payment);
     }
+
+    @PutMapping("/{paymentId}/reject")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
+    public ResponseEntity<PaymentResponseDto> rejectPayment(@AuthenticationPrincipal CustomUserDetails currentUser,
+                                                            @PathVariable Long paymentId) {
+        log.info("Request to reject payment {} by admin {}", paymentId, currentUser.getId());
+        PaymentResponseDto payment = paymentService.rejectPayment(paymentId, currentUser.getId());
+
+        return ResponseEntity.ok(payment);
+    }
 }

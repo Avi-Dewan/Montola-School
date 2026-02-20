@@ -103,6 +103,30 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
+    @Transactional
+    public PaymentResponseDto rejectPayment(Long paymentId, Long adminUserId) {
+        log.info("Rejecting payment {} by admin {}", paymentId, adminUserId);
+
+        Payment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new ResourceNotFoundException("payment.notfound"));
+
+        if (payment.getStatus() == PaymentStatus.REJECTED) {
+            log.warn("Payment {} is already rejected", paymentId);
+            return mapToDto(payment, true);
+        }
+
+        User admin = userRepository.findById(adminUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("auth.admin.notfound"));
+
+        payment.setStatus(PaymentStatus.REJECTED);
+        payment.setVerifiedBy(admin);
+        payment.setVerifiedAt(LocalDateTime.now());
+        Payment savedPayment = paymentRepository.save(payment);
+
+        return mapToDto(savedPayment, true);
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public List<PaymentResponseDto> getAllPayments() {
         return paymentRepository.findAll().stream()
