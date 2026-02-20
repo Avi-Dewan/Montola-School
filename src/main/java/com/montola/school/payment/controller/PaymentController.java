@@ -43,6 +43,12 @@ public class PaymentController {
         return ResponseEntity.ok(paymentService.getMyPayments(currentUser.getId()));
     }
 
+    @GetMapping("/my-payments/chapter/{chapterId}")
+    public ResponseEntity<PaymentResponseDto> getMyPaymentForChapter(@AuthenticationPrincipal CustomUserDetails currentUser,
+                                                                     @PathVariable Long chapterId) {
+        return ResponseEntity.ok(paymentService.getMyPaymentForChapter(currentUser.getId(), chapterId));
+    }
+
     // --- Admin Endpoints ---
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")

@@ -126,6 +126,14 @@ public class PaymentServiceImpl implements PaymentService {
                 .toList();
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public PaymentResponseDto getMyPaymentForChapter(Long userId, Long chapterId) {
+        return paymentRepository.findByUserIdAndChapterId(userId, chapterId)
+                .map(p -> mapToDto(p, false))
+                .orElse(null);
+    }
+
     private PaymentResponseDto mapToDto(Payment payment, boolean isAdmin) {
         PaymentResponseDto.PaymentResponseDtoBuilder builder = PaymentResponseDto.builder()
                 .id(payment.getId())

@@ -37,4 +37,9 @@ public interface PaymentService {
      * Retrieves payments for a specific user (Student view).
      */
     List<PaymentResponseDto> getMyPayments(Long userId);
+
+    /**
+     * Retrieves payment status for a specific user and chapter.
+     */
+    PaymentResponseDto getMyPaymentForChapter(Long userId, Long chapterId);
 }
