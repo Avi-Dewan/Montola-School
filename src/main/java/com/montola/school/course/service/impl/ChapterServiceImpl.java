@@ -205,6 +205,10 @@ public class ChapterServiceImpl implements ChapterService {
                 .map(chapter -> {
                     chapter.setFree(isFree);
 
+                    if(isFree) {
+                        chapter.setPrice(0.0);
+                    }
+
                     return chapterMapper.toResponseDto(chapterRepository.save(chapter));
                 })
                 .orElseThrow(() -> new ResourceNotFoundException("chapter.notfound"));
