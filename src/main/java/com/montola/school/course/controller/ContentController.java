@@ -5,7 +5,12 @@ import com.montola.school.auth.service.UserService;
 import com.montola.school.course.dto.*;
 import com.montola.school.course.service.*;
 import com.montola.school.auth.security.CustomUserDetails;
+import com.montola.school.common.dto.ErrorResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -77,7 +82,24 @@ public class ContentController {
         return ResponseEntity.status(HttpStatus.CREATED).body(googlePdfContentService.create(dto));
     }
 
-    @Operation(summary = "Get content by ID (with enrollment check)")
+    @Operation(summary = "Get content by ID (with enrollment check)",
+            description = "Retrieves the content details (Lecture, Quiz, or PDF) by its ID. " +
+                    "Checks if the user is enrolled in the course/chapter if it's not free. " +
+                    "Also enforces sequential access if applicable (previous content must be completed).")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Content retrieved successfully",
+                    content = @Content(schema = @Schema(oneOf = {
+                            LectureResponseDto.class,
+                            QuizResponseDto.class,
+                            GooglePdfContentResponseDto.class
+                    }))),
+            @ApiResponse(responseCode = "403", description = "Access denied. Reasons: \n" +
+                    "- User is not enrolled in the chapter/course (content.purchase.toAccess)\n" +
+                    "- Previous content in the sequence is not completed (content.complete.previous)",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Content item not found",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
     @GetMapping("/{id}")
     public ResponseEntity<?> getContentById(@PathVariable Long id) {
         User currentUser = userService.getCurrentUser();

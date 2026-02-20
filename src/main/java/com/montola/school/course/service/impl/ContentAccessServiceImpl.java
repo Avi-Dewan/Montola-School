@@ -1,5 +1,6 @@
 package com.montola.school.course.service.impl;
 
+import com.montola.school.common.exception.AccessDeniedCustomException;
 import com.montola.school.common.exception.ResourceNotFoundException;
 import java.util.List;
 import com.montola.school.course.dto.GooglePdfContentResponseDto;
@@ -87,7 +88,7 @@ public class ContentAccessServiceImpl implements ContentAccessService {
 
         if (!chapter.isFree() && !enrollmentRepository.existsByUserIdAndChapterId(userId, chapter.getId())) {
             log.warn("User {} not enrolled in chapter {} for accessing content", userId, chapter.getId());
-            throw new AccessDeniedException("You must purchase this chapter to access this content");
+            throw new AccessDeniedCustomException("content.purchase.toAccess");
         }
 
         // Sequential Access Check
@@ -120,8 +121,7 @@ public class ContentAccessServiceImpl implements ContentAccessService {
         if (!isCompleted) {
             log.warn("User {} blocked from content {}. Previous content {} not completed.",
                     userId, currentItem.getId(), previousItem.getId());
-
-            throw new AccessDeniedException("Please complete the previous content: '" + previousItem.getTitle() + "' before accessing this one.");
+            throw new AccessDeniedCustomException("content.complete.previous");
         }
     }
 }
