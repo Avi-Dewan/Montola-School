@@ -162,7 +162,7 @@ public class PaymentServiceImpl implements PaymentService {
         PaymentResponseDto.PaymentResponseDtoBuilder builder = PaymentResponseDto.builder()
                 .id(payment.getId())
                 .userId(payment.getUser().getId())
-                .userName(isAdmin ? payment.getUser().getEmail() : null) // Only admin sees user details if needed, simplfied here
+                .userName(isAdmin ? payment.getUser().getFullName() : null) // Only admin sees user details if needed, simplfied here
                 .chapterId(payment.getChapter().getId())
                 .chapterTitle(payment.getChapter().getTitle())
                 .senderNumber(payment.getSenderNumber())
