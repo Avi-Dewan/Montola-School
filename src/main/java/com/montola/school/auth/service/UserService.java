@@ -1,5 +1,6 @@
 package com.montola.school.auth.service;
 
+import com.montola.school.auth.dto.AdminRegistrationRequest;
 import com.montola.school.auth.dto.ChangePasswordRequest;
 import com.montola.school.auth.dto.ResetPasswordRequest;
 import com.montola.school.auth.dto.UserRegisterRequest;
@@ -25,17 +26,20 @@ import java.util.Optional;
 public interface UserService {
 
     /**
-     * Creates a new user or reuses an existing unactivated user.
-     *
-     * If a user with the given email already exists but is not activated,
-     * their record will be updated, and a new activation token will be issued.
+     * Creates a new student user.
      *
      * @param request the registration request containing user details.
      * @return the newly created or updated user entity.
-     * @throws com.montola.school.common.exception.ResourceAlreadyExistsException
-     *          if the user already exists and is activated.
      */
     User createUser(UserRegisterRequest request);
+
+    /**
+     * Creates a new admin/manager/teacher user.
+     *
+     * @param request the registration request containing user details and roles.
+     * @return the newly created or updated user entity.
+     */
+    User createAdminUser(AdminRegistrationRequest request);
 
     /**
      * Activates a user account using an activation token.

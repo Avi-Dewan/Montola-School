@@ -65,12 +65,23 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "Register a new user")
+    @Operation(summary = "Register a new student")
     @PostMapping("/register")
-    public ResponseEntity<UserResponse> registerUser(@Valid @RequestBody UserRegisterRequest request) {
-        log.info("Registering new user with email={}", request.getEmail());
+    public ResponseEntity<UserResponse> registerStudent(@Valid @RequestBody UserRegisterRequest request) {
+        log.info("Registering new student with email={}", request.getEmail());
         User user = userService.createUser(request);
-        log.info("Registering new user with email={}", request.getEmail());
+        log.info("Student registered successfully with email={}", request.getEmail());
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(userMapper.toResponse(user));
+    }
+
+    @Operation(summary = "Register a new admin/manager/teacher")
+    @PostMapping("/admin/register")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<UserResponse> registerAdminUser(@Valid @RequestBody AdminRegistrationRequest request) {
+        log.info("Registering new admin user with email={}", request.getEmail());
+        User user = userService.createAdminUser(request);
+        log.info("Admin user registered successfully with email={}", request.getEmail());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(userMapper.toResponse(user));
     }
