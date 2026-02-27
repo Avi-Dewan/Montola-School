@@ -5,6 +5,7 @@ import jakarta.validation.ConstraintViolationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSource;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -174,12 +175,26 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.PAYLOAD_TOO_LARGE, message, null);
     }
 
+    // ----------------- Database Exceptions -----------------
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponse> handleDataIntegrityViolation(DataIntegrityViolationException ex, Locale locale) {
+        log.error("Database integrity violation: ", ex);
+        
+        String message = messageSource.getMessage("error.database.integrity", null, "Database error: Constraint violation", locale);
+        
+        // Optionally, we could parse ex.getMostSpecificCause().getMessage() to give more details,
+        // but be careful not to expose sensitive DB schema info.
+        
+        return buildResponse(HttpStatus.CONFLICT, message, null);
+    }
+
     // ----------------- Fallback Exception -----------------
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleAll(Exception ex, Locale locale) {
 
-        log.info("Fallback Error: {}", ex.getMessage());
+        log.error("Fallback Error: ", ex); // Log full stack trace
 
         String message = messageSource.getMessage("error.unexpected", null, locale);
 
