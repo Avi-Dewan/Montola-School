@@ -61,7 +61,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // Skip JWT authentication for whitelisted paths
             boolean isWhitelisted = securityProperties.getWhiteList()
                     .stream()
-                    .anyMatch(pattern -> pathMatcher.match(pattern, path));
+                    .anyMatch(rule -> pathMatcher.match(rule.pattern(), path) &&
+                            (rule.method() == null || rule.method().equalsIgnoreCase(request.getMethod())));
 
             if (isWhitelisted) {
                 chain.doFilter(request, response);

@@ -24,6 +24,11 @@ public interface PaymentService {
     PaymentResponseDto verifyPayment(Long paymentId, Long adminUserId);
 
     /**
+     * Rejects a payment.
+     */
+    PaymentResponseDto rejectPayment(Long paymentId, Long adminUserId);
+
+    /**
      * Retrieves all payments (Admin view).
      */
     List<PaymentResponseDto> getAllPayments();
@@ -37,4 +42,9 @@ public interface PaymentService {
      * Retrieves payments for a specific user (Student view).
      */
     List<PaymentResponseDto> getMyPayments(Long userId);
+
+    /**
+     * Retrieves payment status for a specific user and chapter.
+     */
+    PaymentResponseDto getMyPaymentForChapter(Long userId, Long chapterId);
 }

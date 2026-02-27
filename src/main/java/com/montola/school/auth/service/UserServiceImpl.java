@@ -1,5 +1,6 @@
 package com.montola.school.auth.service;
 
+import com.montola.school.auth.dto.AdminRegistrationRequest;
 import com.montola.school.auth.dto.ChangePasswordRequest;
 import com.montola.school.auth.dto.ResetPasswordRequest;
 import com.montola.school.auth.dto.UserRegisterRequest;
@@ -21,6 +22,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -45,24 +48,32 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public User createUser(UserRegisterRequest request) {
-        log.info("Attempting to create user with email {}", request.getEmail());
-
-        if (request.getRoles().stream().anyMatch(role -> role == Role.ADMIN || role == Role.MANAGER)) {
-            log.info("Registration failed for MANAGER or ADMIN role. Need admin access");
-
-            throw new AccessDeniedCustomException("auth.role.not.allowedToRegister");
-        }
+        log.info("Attempting to create student user with email {}", request.getEmail());
 
         return userRepository.findByEmail(request.getEmail())
                 .map(user -> {
                     log.info("Existing unactivated user found with email {}, updating", user.getEmail());
-
                     return handleExistingUnactivatedUser(user, request);
                 })
                 .orElseGet(() -> {
-                    log.info("No existing user found, creating new user with email {}", request.getEmail());
-
+                    log.info("No existing user found, creating new student user with email {}", request.getEmail());
                     return handleNewUser(request);
+                });
+    }
+
+    @Override
+    @Transactional
+    public User createAdminUser(AdminRegistrationRequest request) {
+        log.info("Attempting to create admin/manager/teacher user with email {}", request.getEmail());
+
+        return userRepository.findByEmail(request.getEmail())
+                .map(user -> {
+                    log.info("Existing unactivated user found with email {}, updating", user.getEmail());
+                    return handleExistingUnactivatedAdminUser(user, request);
+                })
+                .orElseGet(() -> {
+                    log.info("No existing user found, creating new admin user with email {}", request.getEmail());
+                    return handleNewAdminUser(request);
                 });
     }
 
@@ -252,14 +263,15 @@ public class UserServiceImpl implements UserService {
     }
 
     private User handleNewUser(UserRegisterRequest request) {
-        log.info("Creating new user entity for email {}", request.getEmail());
+        log.info("Creating new student user entity for email {}", request.getEmail());
         User user = userMapper.toEntity(request);
         user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+        user.setRoles(new HashSet<>(Collections.singleton(Role.STUDENT)));
 
         User saved = userRepository.save(user);
 
         activationTokenService.issueTokenForUser(saved);
-        log.info("New user created and activation token issued for {}", saved.getEmail());
+        log.info("New student user created and activation token issued for {}", saved.getEmail());
 
         return saved;
     }
@@ -273,14 +285,50 @@ public class UserServiceImpl implements UserService {
             throw new ResourceAlreadyExistsException("user.already.exists");
         }
 
-        existingUser.setEmail(request.getPhone());
+        existingUser.setFullName(request.getFullName());
+        existingUser.setPhone(request.getPhone());
+        existingUser.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+        existingUser.setRoles(new HashSet<>(Collections.singleton(Role.STUDENT)));
+
+        User updated = userRepository.save(existingUser);
+
+        activationTokenService.replaceTokenForUser(updated);
+        log.info("Existing unactivated user updated and new activation token issued for {}", updated.getEmail());
+
+        return updated;
+    }
+
+    private User handleNewAdminUser(AdminRegistrationRequest request) {
+        log.info("Creating new admin user entity for email {}", request.getEmail());
+        User user = userMapper.toEntity(request);
+        user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+        // Roles are set by mapper from request
+
+        User saved = userRepository.save(user);
+
+        activationTokenService.issueTokenForUser(saved);
+        log.info("New admin user created and activation token issued for {}", saved.getEmail());
+
+        return saved;
+    }
+
+    private User handleExistingUnactivatedAdminUser(User existingUser, AdminRegistrationRequest request) {
+        log.info("Updating existing unactivated admin user {}", existingUser.getEmail());
+
+        if (existingUser.getIsActivated()) {
+            log.warn("Cannot update user {}: already activated", existingUser.getEmail());
+            throw new ResourceAlreadyExistsException("user.already.exists");
+        }
+
+        existingUser.setFullName(request.getFullName());
+        existingUser.setPhone(request.getPhone());
         existingUser.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         existingUser.setRoles(request.getRoles());
 
         User updated = userRepository.save(existingUser);
 
         activationTokenService.replaceTokenForUser(updated);
-        log.info("Existing unactivated user updated and new activation token issued for {}", updated.getEmail());
+        log.info("Existing unactivated admin user updated and new activation token issued for {}", updated.getEmail());
 
         return updated;
     }

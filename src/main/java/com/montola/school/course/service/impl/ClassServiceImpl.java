@@ -77,14 +77,17 @@ public class ClassServiceImpl implements ClassService {
     @Override
     @Transactional
     public void delete(Long id) {
-        classRepository.findById(id).ifPresent(entity -> {
-            // Cascade delete subjects
-            subjectRepository.findByClassEntity_Id(id).forEach(subject -> {
-                subjectService.delete(subject.getId());
-            });
-
-            entity.setDeleted(true);
-            classRepository.save(entity);
+        ClassEntity entity = classRepository.findById(id).orElseThrow(() -> {
+            log.error("Class not found with ID: {}", id);
+            return new ResourceNotFoundException("class.notfound");
         });
+
+        // Cascade delete subjects
+        subjectRepository.findByClassEntity_Id(id).forEach(subject -> {
+            subjectService.delete(subject.getId());
+        });
+
+        entity.setDeleted(true);
+        classRepository.save(entity);
     }
 }

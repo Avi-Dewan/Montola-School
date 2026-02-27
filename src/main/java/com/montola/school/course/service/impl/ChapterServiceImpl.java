@@ -155,7 +155,7 @@ public class ChapterServiceImpl implements ChapterService {
 
         if (!teacher.isTeacher()) {
             log.warn("User {} is not a teacher", teacherId);
-            return;
+            throw new IllegalArgumentException("User is not a teacher");
         }
 
         // Check if already assigned
@@ -204,6 +204,10 @@ public class ChapterServiceImpl implements ChapterService {
         return chapterRepository.findById(id)
                 .map(chapter -> {
                     chapter.setFree(isFree);
+
+                    if(isFree) {
+                        chapter.setPrice(0.0);
+                    }
 
                     return chapterMapper.toResponseDto(chapterRepository.save(chapter));
                 })

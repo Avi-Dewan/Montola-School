@@ -209,7 +209,7 @@ public class ChapterController {
         log.info("Fetching cover image for chapter {}", id);
         byte[] image = chapterService.getCoverImage(id);
 
-        if (image == null || image.length == 0) {
+        if (image == null || image.length == 0) { // TODO: for null image not getting, this
             return ResponseEntity.notFound().build();
         }
 

@@ -73,6 +73,13 @@ public interface QuizService {
     QuizResponseDto updateByContentItemId(Long contentItemId, QuizRequestDto updated);
 
     /**
+     * Soft deletes a quiz by its associated content item ID.
+     *
+     * @param contentItemId the content item ID
+     */
+    void deleteByContentItemId(Long contentItemId);
+
+    /**
      * Updates questions for a quiz.
      *
      * @param id the quiz ID
