@@ -103,6 +103,30 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
+    @Transactional
+    public PaymentResponseDto rejectPayment(Long paymentId, Long adminUserId) {
+        log.info("Rejecting payment {} by admin {}", paymentId, adminUserId);
+
+        Payment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new ResourceNotFoundException("payment.notfound"));
+
+        if (payment.getStatus() == PaymentStatus.REJECTED) {
+            log.warn("Payment {} is already rejected", paymentId);
+            return mapToDto(payment, true);
+        }
+
+        User admin = userRepository.findById(adminUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("auth.admin.notfound"));
+
+        payment.setStatus(PaymentStatus.REJECTED);
+        payment.setVerifiedBy(admin);
+        payment.setVerifiedAt(LocalDateTime.now());
+        Payment savedPayment = paymentRepository.save(payment);
+
+        return mapToDto(savedPayment, true);
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public List<PaymentResponseDto> getAllPayments() {
         return paymentRepository.findAll().stream()
@@ -126,11 +150,19 @@ public class PaymentServiceImpl implements PaymentService {
                 .toList();
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public PaymentResponseDto getMyPaymentForChapter(Long userId, Long chapterId) {
+        return paymentRepository.findByUserIdAndChapterId(userId, chapterId)
+                .map(p -> mapToDto(p, false))
+                .orElse(null);
+    }
+
     private PaymentResponseDto mapToDto(Payment payment, boolean isAdmin) {
         PaymentResponseDto.PaymentResponseDtoBuilder builder = PaymentResponseDto.builder()
                 .id(payment.getId())
                 .userId(payment.getUser().getId())
-                .userName(isAdmin ? payment.getUser().getEmail() : null) // Only admin sees user details if needed, simplfied here
+                .userName(isAdmin ? payment.getUser().getFullName() : null) // Only admin sees user details if needed, simplfied here
                 .chapterId(payment.getChapter().getId())
                 .chapterTitle(payment.getChapter().getTitle())
                 .senderNumber(payment.getSenderNumber())

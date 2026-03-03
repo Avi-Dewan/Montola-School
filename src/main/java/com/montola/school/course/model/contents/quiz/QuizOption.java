@@ -31,5 +31,5 @@ public class QuizOption {
     private String optionText;
 
     @Column(name = "is_correct")
-    private boolean isCorrect;
+    private boolean correct;
 }

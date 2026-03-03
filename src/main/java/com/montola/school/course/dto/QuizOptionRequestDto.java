@@ -1,5 +1,6 @@
 package com.montola.school.course.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
 /**
@@ -14,5 +15,7 @@ import lombok.*;
 public class QuizOptionRequestDto {
 
     private String optionText;
-    private boolean isCorrect;
+
+    @JsonProperty("isCorrect")
+    private boolean correct;
 }

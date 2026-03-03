@@ -59,6 +59,9 @@ public class QuizServiceImpl implements QuizService {
         Quiz entity = quizMapper.toEntity(dto);
         entity.setContentItem(savedContentItem);
 
+        // Link relations using the private helper method
+        linkQuizRelations(entity);
+
         Quiz saved = quizRepository.save(entity);
 
         return quizMapper.toResponseDto(saved);
@@ -124,6 +127,13 @@ public class QuizServiceImpl implements QuizService {
         quizRepository.findById(id).ifPresent(entity -> {
             entity.setDeleted(true);
             quizRepository.save(entity);
+
+            ContentItem contentItem = entity.getContentItem();
+            if (contentItem != null) {
+                log.debug("Soft deleting associated content item with ID: {}", contentItem.getId());
+                contentItem.setDeleted(true);
+                contentItemRepository.save(contentItem);
+            }
         });
     }
 
@@ -152,6 +162,24 @@ public class QuizServiceImpl implements QuizService {
 
     @Override
     @Transactional
+    public void deleteByContentItemId(Long contentItemId) {
+        log.warn("Soft deleting quiz with content item ID: {}", contentItemId);
+
+        quizRepository.findByContentItem_Id(contentItemId).ifPresent(entity -> {
+            entity.setDeleted(true);
+            quizRepository.save(entity);
+
+            ContentItem contentItem = entity.getContentItem();
+            if (contentItem != null) {
+                log.debug("Soft deleting associated content item with ID: {}", contentItem.getId());
+                contentItem.setDeleted(true);
+                contentItemRepository.save(contentItem);
+            }
+        });
+    }
+
+    @Override
+    @Transactional
     public QuizResponseDto updateQuestions(Long id, List<QuizQuestionRequestDto> questions) {
         log.info("Updating questions for quiz with ID: {}", id);
 
@@ -167,25 +195,11 @@ public class QuizServiceImpl implements QuizService {
             List<QuizQuestion> newQuestions = questions.stream()
                     .map(quizMapper::toEntity)
                     .toList();
+            
+            existing.getQuestions().addAll(newQuestions);
 
-            newQuestions.forEach(question -> {
-                existing.addQuestion(question);
-                if (question.getOptions() != null) {
-                    question.getOptions().forEach(option -> option.setQuestion(question));
-                }
-
-                if (question.getWrittenAnswer() != null) {
-                    question.getWrittenAnswer().setQuestion(question);
-                }
-
-                if (question.getFillBlanks() != null) {
-                    question.getFillBlanks().forEach(fb -> fb.setQuestion(question));
-                }
-
-                if (question.getTableMatchings() != null) {
-                    question.getTableMatchings().forEach(tm -> tm.setQuestion(question));
-                }
-            });
+            // Link relations using the private helper method
+            linkQuizRelations(existing);
         }
 
         Quiz saved = quizRepository.save(existing);
@@ -203,5 +217,34 @@ public class QuizServiceImpl implements QuizService {
                 .orElseThrow(() -> new ResourceNotFoundException("quiz.notfound"));
 
         return updateQuestions(existing.getId(), questions);
+    }
+
+    /**
+     * Establishes the bidirectional relationship between a Quiz and its questions,
+     * and between questions and their specific answer types.
+     * @param quiz The Quiz entity whose relations need to be linked.
+     */
+    private void linkQuizRelations(Quiz quiz) {
+        if (quiz.getQuestions() != null) {
+            quiz.getQuestions().forEach(question -> {
+                question.setQuiz(quiz); // Set parent quiz
+
+                if (question.getOptions() != null) {
+                    question.getOptions().forEach(option -> option.setQuestion(question));
+                }
+
+                if (question.getWrittenAnswer() != null) {
+                    question.getWrittenAnswer().setQuestion(question);
+                }
+
+                if (question.getFillBlanks() != null) {
+                    question.getFillBlanks().forEach(fb -> fb.setQuestion(question));
+                }
+
+                if (question.getTableMatchings() != null) {
+                    question.getTableMatchings().forEach(tm -> tm.setQuestion(question));
+                }
+            });
+        }
     }
 }

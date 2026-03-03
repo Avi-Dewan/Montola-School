@@ -159,4 +159,3 @@ CREATE TABLE quiz_table_matching (
 CREATE INDEX idx_lectures_content_item_id ON lectures(content_item_id);
 CREATE INDEX idx_quizzes_content_item_id ON quizzes(content_item_id);
 CREATE INDEX idx_quiz_questions_quiz_id ON quiz_questions(quiz_id);
-CREATE UNIQUE INDEX uq_quiz_questions_order ON quiz_questions (quiz_id, order_index);

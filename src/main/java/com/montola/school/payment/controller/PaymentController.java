@@ -43,6 +43,12 @@ public class PaymentController {
         return ResponseEntity.ok(paymentService.getMyPayments(currentUser.getId()));
     }
 
+    @GetMapping("/my-payments/chapter/{chapterId}")
+    public ResponseEntity<PaymentResponseDto> getMyPaymentForChapter(@AuthenticationPrincipal CustomUserDetails currentUser,
+                                                                     @PathVariable Long chapterId) {
+        return ResponseEntity.ok(paymentService.getMyPaymentForChapter(currentUser.getId(), chapterId));
+    }
+
     // --- Admin Endpoints ---
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
@@ -62,6 +68,16 @@ public class PaymentController {
                                                             @PathVariable Long paymentId) {
         log.info("Request to verify payment {} by admin {}", paymentId, currentUser.getId());
         PaymentResponseDto payment = paymentService.verifyPayment(paymentId, currentUser.getId());
+
+        return ResponseEntity.ok(payment);
+    }
+
+    @PutMapping("/{paymentId}/reject")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
+    public ResponseEntity<PaymentResponseDto> rejectPayment(@AuthenticationPrincipal CustomUserDetails currentUser,
+                                                            @PathVariable Long paymentId) {
+        log.info("Request to reject payment {} by admin {}", paymentId, currentUser.getId());
+        PaymentResponseDto payment = paymentService.rejectPayment(paymentId, currentUser.getId());
 
         return ResponseEntity.ok(payment);
     }
