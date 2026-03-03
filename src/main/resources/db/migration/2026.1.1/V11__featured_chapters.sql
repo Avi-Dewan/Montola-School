@@ -11,5 +11,3 @@ CREATE TABLE featured_chapters (
     version     BIGINT,
     CONSTRAINT  fk_featured_chapter FOREIGN KEY (chapter_id) REFERENCES chapters(id)
 );
-
-ALTER TABLE featured_chapters ADD COLUMN version BIGINT
