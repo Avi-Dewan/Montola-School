@@ -1,7 +1,7 @@
 spring:
   application:
     name: montola
-
+  
   jpa:
     hibernate:
       ddl-auto: validate
@@ -27,3 +27,6 @@ spring:
           auth: true
           starttls:
             enable: true
+
+app:
+  frontend-url: ${FRONTEND_URL:http://localhost:3000}
