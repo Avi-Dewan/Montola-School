@@ -1,6 +1,7 @@
 package com.montola.school.common.security;
 
 import lombok.Getter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -12,6 +13,9 @@ import java.util.List;
 @Getter
 @Component
 public class SecurityProperties {
+
+    @Value("${app.frontend-url}")
+    private String frontendUrl;
 
     public record WhitelistRule(String pattern, String method) {}
 
@@ -35,9 +39,6 @@ public class SecurityProperties {
     );
 
     public List<String> getCorsAllowedOrigins() {
-        return List.of(
-                "http://localhost:3000",
-                "https://yourfrontend.com"
-        );
+        return List.of(frontendUrl);
     }
 }

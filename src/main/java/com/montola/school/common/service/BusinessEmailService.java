@@ -4,6 +4,7 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -26,6 +27,9 @@ public class BusinessEmailService {
 
     private final JavaMailSender mailSender;
 
+    @Value("${app.frontend-url}")
+    private String frontendUrl;
+
     /**
      * Sends an account activation email with a 15-minute expiration link.
      *
@@ -34,7 +38,7 @@ public class BusinessEmailService {
      */
     public void sendActivationEmail(String to, String token) {
         String subject = "✅ Activate Your Account - Montola School";
-        String activationLink = "http://localhost:3000/auth/activate?email=" + to + "&token=" + token;
+        String activationLink = frontendUrl + "/auth/activate?email=" + to + "&token=" + token;
 
         String html = """
             <div style="font-family:Arial, sans-serif; background-color:#f4fff4; padding:20px; border-radius:10px;">
@@ -61,7 +65,7 @@ public class BusinessEmailService {
      */
     public void sendPasswordResetEmail(String to, String token) {
         String subject = "✅ Password Reset Request - Montola School";
-        String resetLink = "http://localhost:3000/auth/reset-password?email=" + to + "&token=" + token;
+        String resetLink = frontendUrl + "/auth/reset-password?email=" + to + "&token=" + token;
 
         String html = """
         <div style="font-family:Arial, sans-serif; background-color:#f4fff4; padding:20px; border-radius:10px;">

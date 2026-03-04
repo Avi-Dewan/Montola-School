@@ -1,0 +1,17 @@
+spring:
+  datasource:
+    # Use environment variables if provided, otherwise default to localhost/5432
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/montola_dev
+    username: ${POSTGRES_USER:postgres}
+    password: ${POSTGRES_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+  
+  flyway:
+    enabled: false
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+
+app:
+  frontend-url: http://localhost:3000
