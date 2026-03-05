@@ -19,17 +19,8 @@ spring:
       secret: ${SECURITY_JWT_SECRET}
       expiration-minutes: ${SECURITY_JWT_EXPIRATION_MINUTES:60}
 
-  mail:
-    host: smtp.gmail.com
-    port: 587
-    username: ${MAIL_APP_EMAIL}
-    password: ${MAIL_APP_PASSWORD}
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
+  resend:
+    api-key: ${RESEND_API_KEY}
 
 app:
   frontend-url: ${FRONTEND_URL:http://localhost:3000}
