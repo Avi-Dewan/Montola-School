@@ -24,3 +24,13 @@ spring:
 
 app:
   frontend-url: ${FRONTEND_URL:http://localhost:3000}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+      base-path: /internal
+  endpoint:
+    health:
+      show-details: never

@@ -20,6 +20,7 @@ public class SecurityProperties {
     public record WhitelistRule(String pattern, String method) {}
 
     private final List<WhitelistRule> whiteList = List.of(
+            new WhitelistRule("/internal/health", "GET"),
             new WhitelistRule("/api/auth/login", "POST"),
             new WhitelistRule("/api/auth/refresh-token", "POST"),
             new WhitelistRule("/api/auth/register", "POST"),
