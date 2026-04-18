@@ -21,6 +21,8 @@ public class SecurityProperties {
 
     private final List<WhitelistRule> whiteList = List.of(
             new WhitelistRule("/internal/health", "GET"),
+            new WhitelistRule("/favicon.ico", "GET"),
+            new WhitelistRule("/error", null),
             new WhitelistRule("/api/auth/login", "POST"),
             new WhitelistRule("/api/auth/refresh-token", "POST"),
             new WhitelistRule("/api/auth/register", "POST"),
