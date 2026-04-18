@@ -141,6 +141,14 @@ public class ChapterController {
         return ResponseEntity.ok(courseStructureService.getChapterStructure(id));
     }
 
+    @Operation(summary = "Get partial course structure (Chapter -> Topic -> Content Titles) for public catalog")
+    @GetMapping("/{id}/public-structure")
+    public ResponseEntity<ChapterStructureResponseDto> getPublicChapterStructure(@PathVariable Long id) {
+        log.info("Fetching public structure for chapter id: {}", id);
+
+        return ResponseEntity.ok(courseStructureService.getPublicChapterStructure(id));
+    }
+
     @Operation(summary = "Assign a teacher to a chapter")
     @PostMapping("/{chapterId}/assign-teacher")
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")

@@ -14,5 +14,6 @@ public interface CourseStructureService {
     ClassStructureResponseDto getClassStructure(Long classId);
     SubjectStructureResponseDto getSubjectStructure(Long subjectId);
     ChapterStructureResponseDto getChapterStructure(Long chapterId);
+    ChapterStructureResponseDto getPublicChapterStructure(Long chapterId);
     ClassStructureResponseDto getPublicClassStructure(Long classId);
 }
