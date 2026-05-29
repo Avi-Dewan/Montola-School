@@ -32,6 +32,7 @@ public class SecurityProperties {
             new WhitelistRule("/api/auth/reset-password", "POST"),
             new WhitelistRule("/api/v1/classes", "GET"),
             new WhitelistRule("/api/v1/classes/*/public-structure", "GET"),
+            new WhitelistRule("/api/v1/subjects/*/public-structure", "GET"),
             new WhitelistRule("/api/v1/chapters/*/public-structure", "GET"),
             new WhitelistRule("/api/v1/chapters/*/cover-image", "GET"),
             new WhitelistRule("/api/v1/chapters/public/free", "GET"),

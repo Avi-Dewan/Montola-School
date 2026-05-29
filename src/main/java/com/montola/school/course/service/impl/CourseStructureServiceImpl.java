@@ -175,6 +175,30 @@ public class CourseStructureServiceImpl implements CourseStructureService {
     }
 
     @Override
+    public SubjectStructureResponseDto getPublicSubjectStructure(Long subjectId) {
+        log.info("Fetching public structure for subject ID: {}", subjectId);
+
+        // 1. Fetch Subject
+        Subject subject = subjectRepository.findById(subjectId)
+                .filter(s -> !s.isDeleted())
+                .orElseThrow(() -> new ResourceNotFoundException("subject.notfound"));
+
+        // 2. Fetch PUBLISHED Chapters
+        List<Chapter> chapters = chapterRepository.findBySubjectIdIn(Collections.singletonList(subjectId)).stream()
+                .filter(c -> !c.isDeleted())
+                .filter(c -> c.getStatus() == PUBLISHED)
+                .sorted(Comparator.comparingInt(Chapter::getOrderIndex))
+                .toList();
+
+        // 3. Assemble Tree (Subject -> Chapter)
+        List<ChapterStructureResponseDto> chapterDtos = chapters.stream()
+                .map(chapter -> toChapterDto(chapter, Collections.emptyList()))
+                .collect(Collectors.toList());
+
+        return toSubjectDto(subject, chapterDtos);
+    }
+
+    @Override
     public ChapterStructureResponseDto getChapterStructure(Long chapterId) {
         log.info("Fetching full structure for chapter ID: {}", chapterId);
 
@@ -321,7 +345,10 @@ public class CourseStructureServiceImpl implements CourseStructureService {
         return SubjectStructureResponseDto.builder()
                 .id(entity.getId())
                 .name(entity.getName())
+                .description(entity.getDescription())
                 .orderIndex(entity.getOrderIndex())
+                .classId(entity.getClassEntity().getId())
+                .className(entity.getClassEntity().getName())
                 .chapters(chapters)
                 .build();
     }
@@ -332,6 +359,10 @@ public class CourseStructureServiceImpl implements CourseStructureService {
                 .title(entity.getTitle())
                 .status(entity.getStatus())
                 .orderIndex(entity.getOrderIndex())
+                .subjectId(entity.getSubject().getId())
+                .subjectName(entity.getSubject().getName())
+                .classId(entity.getSubject().getClassEntity().getId())
+                .className(entity.getSubject().getClassEntity().getName())
                 .topics(topics)
                 .build();
     }
