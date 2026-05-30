@@ -8,5 +8,6 @@ public enum QuizType {
     MCQ,
     WRITTEN,
     FILL_BLANK,
-    TABLE_MATCHING
+    TABLE_MATCHING,
+    MIXED
 }
