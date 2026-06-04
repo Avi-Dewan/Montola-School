@@ -14,6 +14,8 @@ public class ChapterResponseDto {
     private int orderIndex;
     private Long subjectId;
     private String subjectName;
+    private Long classId;
+    private String className;
     private String videoId;
     private Double price;
     private boolean isFree;
