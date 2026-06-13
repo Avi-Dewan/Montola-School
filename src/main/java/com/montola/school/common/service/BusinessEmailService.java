@@ -1,20 +1,17 @@
 package com.montola.school.common.service;
 
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
+import com.resend.Resend;
+import com.resend.services.emails.model.SendEmailRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.MailException;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 /**
  * Service responsible for sending business-related emails such as
  * account activation, password resets, and purchase notifications.
  *
- * This service uses {@link JavaMailSender} for sending HTML emails.
+ * This service uses {@link Resend } for sending HTML emails.
  * Logs both success and failure events for monitoring purposes.
  *
  * @author avidewan
@@ -25,7 +22,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class BusinessEmailService {
 
-    private final JavaMailSender mailSender;
+    private final Resend resend;
 
     @Value("${app.frontend-url}")
     private String frontendUrl;
@@ -122,24 +119,22 @@ public class BusinessEmailService {
      * @param htmlContent the HTML content of the email
      * @return true if the email was sent successfully, false otherwise
      */
-    private boolean sendEmail(String to,
-                              String subject,
-                              String htmlContent) {
+    private boolean sendEmail(String to, String subject, String htmlContent) {
         try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, "utf-8");
 
-            helper.setTo(to);
-            helper.setSubject(subject);
-            helper.setText(htmlContent, true);
+            SendEmailRequest request = SendEmailRequest.builder()
+                    .from("Montola School <noreply@montolaschool.com>")
+                    .to(to)
+                    .subject(subject)
+                    .html(htmlContent)
+                    .build();
 
-            mailSender.send(message);
+            resend.emails().send(request);
 
             return true;
 
-        } catch (MailException | MessagingException ex) {
+        } catch (Exception ex) {
             log.error("Failed to send email to {}. Reason: {}", to, ex.getMessage(), ex);
-
             return false;
         }
     }

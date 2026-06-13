@@ -29,6 +29,8 @@ public interface ChapterMapper {
 
     @Mapping(target = "subjectId", source = "subject.id")
     @Mapping(target = "subjectName", source = "subject.name")
+    @Mapping(target = "classId", source = "subject.classEntity.id")
+    @Mapping(target = "className", source = "subject.classEntity.name")
     @Mapping(target = "teachers", source = "teachers", qualifiedByName = "mapTeachers")
     ChapterResponseDto toResponseDto(Chapter entity);
 

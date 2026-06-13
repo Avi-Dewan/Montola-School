@@ -102,4 +102,12 @@ public class SubjectController {
 
         return ResponseEntity.ok(courseStructureService.getSubjectStructure(id));
     }
+
+    @Operation(summary = "Get partial course structure (Subject -> Chapter) for public catalog")
+    @GetMapping("/{id}/public-structure")
+    public ResponseEntity<SubjectStructureResponseDto> getPublicSubjectStructure(@PathVariable Long id) {
+        log.info("Fetching public structure for subject id: {}", id);
+
+        return ResponseEntity.ok(courseStructureService.getPublicSubjectStructure(id));
+    }
 }

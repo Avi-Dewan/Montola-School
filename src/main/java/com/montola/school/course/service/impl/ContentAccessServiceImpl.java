@@ -2,7 +2,6 @@ package com.montola.school.course.service.impl;
 
 import com.montola.school.common.exception.AccessDeniedCustomException;
 import com.montola.school.common.exception.ResourceNotFoundException;
-import java.util.List;
 import com.montola.school.course.dto.GooglePdfContentResponseDto;
 import com.montola.school.course.dto.LectureResponseDto;
 import com.montola.school.course.dto.QuizResponseDto;
@@ -14,13 +13,10 @@ import com.montola.school.course.service.ContentAccessService;
 import com.montola.school.course.service.GooglePdfContentService;
 import com.montola.school.course.service.LectureService;
 import com.montola.school.course.service.QuizService;
-import com.montola.school.learner.model.ContentProgress;
 import com.montola.school.learner.repository.ContentProgressRepository;
 import com.montola.school.learner.repository.EnrollmentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -98,29 +94,17 @@ public class ContentAccessServiceImpl implements ContentAccessService {
     private void checkPrerequisites(Long userId, Chapter chapter, ContentItem currentItem) {
         log.debug("Checking prerequisites for user {} on content {}", userId, currentItem.getId());
 
-        List<ContentItem> previousItems = contentItemRepository.findPreviousContentItems(
+        long incompleteCount = progressRepository.countIncompletePreviousItems(
+                userId,
                 chapter.getId(),
                 currentItem.getTopic().getOrderIndex(),
-                currentItem.getTopic().getId(),
                 currentItem.getOrderIndex(),
-                PageRequest.of(0, 1)
+                currentItem.getId()
         );
 
-        if (previousItems.isEmpty()) {
-            // No previous item, this is the very first content in the chapter. Allow access.
-            return;
-        }
-
-        ContentItem previousItem = previousItems.get(0);
-
-        // Check if the previous item is completed
-        boolean isCompleted = progressRepository.findByUserIdAndContentItemId(userId, previousItem.getId())
-                .map(ContentProgress::isCompleted)
-                .orElse(false);
-
-        if (!isCompleted) {
-            log.warn("User {} blocked from content {}. Previous content {} not completed.",
-                    userId, currentItem.getId(), previousItem.getId());
+        if (incompleteCount > 0) {
+            log.warn("User {} blocked from content {}. {} previous content item(s) not completed.",
+                    userId, currentItem.getId(), incompleteCount);
             throw new AccessDeniedCustomException("content.complete.previous");
         }
     }

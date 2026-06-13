@@ -63,7 +63,7 @@ public class CourseStructureServiceImpl implements CourseStructureService {
         // 2. Fetch Subjects
         List<Subject> subjects = subjectRepository.findByClassEntity_Id(classId).stream()
                 .filter(s -> !s.isDeleted())
-                .sorted(Comparator.comparingInt(Subject::getOrderIndex))
+                .sorted(Comparator.comparingInt(Subject::getOrderIndex).thenComparingLong(Subject::getId))
                 .collect(Collectors.toList());
 
         if (subjects.isEmpty()) {
@@ -105,12 +105,12 @@ public class CourseStructureServiceImpl implements CourseStructureService {
                     List<Chapter> subjectChapters = chaptersBySubjectId.getOrDefault(subject.getId(), Collections.emptyList());
 
                     List<ChapterStructureResponseDto> chapterDtos = subjectChapters.stream()
-                            .sorted(Comparator.comparingInt(Chapter::getOrderIndex))
+                            .sorted(Comparator.comparingInt(Chapter::getOrderIndex).thenComparingLong(Chapter::getId))
                             .map(chapter -> {
                                 List<Topic> chapterTopics = topicsByChapterId.getOrDefault(chapter.getId(), Collections.emptyList());
 
                                 List<TopicStructureResponseDto> topicDtos = chapterTopics.stream()
-                                        .sorted(Comparator.comparingInt(Topic::getOrderIndex))
+                                        .sorted(Comparator.comparingInt(Topic::getOrderIndex).thenComparingLong(Topic::getId))
                                         .map(topic -> toTopicDto(topic, Collections.emptyList()))
                                         .collect(Collectors.toList());
 
@@ -140,7 +140,7 @@ public class CourseStructureServiceImpl implements CourseStructureService {
         List<Chapter> chapters = chapterRepository.findBySubjectIdIn(Collections.singletonList(subjectId)).stream()
                 .filter(c -> !c.isDeleted())
                 .filter(c -> currentUser.isAdminOrManagerOrTeacher() || c.getStatus() == PUBLISHED)
-                .sorted(Comparator.comparingInt(Chapter::getOrderIndex))
+                .sorted(Comparator.comparingInt(Chapter::getOrderIndex).thenComparingLong(Chapter::getId))
                 .toList();
 
         List<Long> chapterIds = chapters.stream().map(Chapter::getId).collect(Collectors.toList());
@@ -163,12 +163,36 @@ public class CourseStructureServiceImpl implements CourseStructureService {
                 .map(chapter -> {
                     List<Topic> chapterTopics = topicsByChapterId.getOrDefault(chapter.getId(), Collections.emptyList());
                     List<TopicStructureResponseDto> topicDtos = chapterTopics.stream()
-                            .sorted(Comparator.comparingInt(Topic::getOrderIndex))
+                            .sorted(Comparator.comparingInt(Topic::getOrderIndex).thenComparingLong(Topic::getId))
                             .map(topic -> toTopicDto(topic, Collections.emptyList()))
                             .collect(Collectors.toList());
 
                     return toChapterDto(chapter, topicDtos);
                 })
+                .collect(Collectors.toList());
+
+        return toSubjectDto(subject, chapterDtos);
+    }
+
+    @Override
+    public SubjectStructureResponseDto getPublicSubjectStructure(Long subjectId) {
+        log.info("Fetching public structure for subject ID: {}", subjectId);
+
+        // 1. Fetch Subject
+        Subject subject = subjectRepository.findById(subjectId)
+                .filter(s -> !s.isDeleted())
+                .orElseThrow(() -> new ResourceNotFoundException("subject.notfound"));
+
+        // 2. Fetch PUBLISHED Chapters
+        List<Chapter> chapters = chapterRepository.findBySubjectIdIn(Collections.singletonList(subjectId)).stream()
+                .filter(c -> !c.isDeleted())
+                .filter(c -> c.getStatus() == PUBLISHED)
+                .sorted(Comparator.comparingInt(Chapter::getOrderIndex).thenComparingLong(Chapter::getId))
+                .toList();
+
+        // 3. Assemble Tree (Subject -> Chapter)
+        List<ChapterStructureResponseDto> chapterDtos = chapters.stream()
+                .map(chapter -> toChapterDto(chapter, Collections.emptyList()))
                 .collect(Collectors.toList());
 
         return toSubjectDto(subject, chapterDtos);
@@ -189,7 +213,7 @@ public class CourseStructureServiceImpl implements CourseStructureService {
         // 2. Fetch Topics and below
         List<Topic> topics = topicRepository.findByChapterIdIn(Collections.singletonList(chapterId)).stream()
                 .filter(t -> !t.isDeleted())
-                .sorted(Comparator.comparingInt(Topic::getOrderIndex))
+                .sorted(Comparator.comparingInt(Topic::getOrderIndex).thenComparingLong(Topic::getId))
                 .collect(Collectors.toList());
 
         List<Long> topicIds = topics.stream().map(Topic::getId).collect(Collectors.toList());
@@ -209,7 +233,39 @@ public class CourseStructureServiceImpl implements CourseStructureService {
             log.info("Chapter {} not enrolled by user {}. Hiding content items.", chapterId, currentUser.getId());
         }
 
-        // 3. Assemble
+        return buildChapterStructure(chapter, topics, contentItems);
+    }
+
+    @Override
+    public ChapterStructureResponseDto getPublicChapterStructure(Long chapterId) {
+        log.info("Fetching public full structure for chapter ID: {}", chapterId);
+
+        // 1. Fetch Chapter (Only Published)
+        Chapter chapter = chapterRepository.findById(chapterId)
+                .filter(c -> !c.isDeleted())
+                .filter(c -> c.getStatus() == PUBLISHED)
+                .orElseThrow(() -> new ResourceNotFoundException("chapter.notfound"));
+
+        // 2. Fetch Topics
+        List<Topic> topics = topicRepository.findByChapterIdIn(Collections.singletonList(chapterId)).stream()
+                .filter(t -> !t.isDeleted())
+                .sorted(Comparator.comparingInt(Topic::getOrderIndex).thenComparingLong(Topic::getId))
+                .collect(Collectors.toList());
+
+        List<Long> topicIds = topics.stream().map(Topic::getId).collect(Collectors.toList());
+
+        // 3. Fetch Content Items (No authorization check for structure/titles)
+        List<ContentItem> contentItems = Collections.emptyList();
+        if (!topicIds.isEmpty()) {
+            contentItems = contentItemRepository.findByTopicIdIn(topicIds).stream()
+                    .filter(c -> !c.isDeleted())
+                    .collect(Collectors.toList());
+        }
+
+        return buildChapterStructure(chapter, topics, contentItems);
+    }
+
+    private ChapterStructureResponseDto buildChapterStructure(Chapter chapter, List<Topic> topics, List<ContentItem> contentItems) {
         Map<Long, List<ContentItem>> contentByTopicId = contentItems.stream()
                 .collect(Collectors.groupingBy(c -> c.getTopic().getId()));
 
@@ -217,7 +273,7 @@ public class CourseStructureServiceImpl implements CourseStructureService {
                 .map(topic -> {
                     List<ContentItem> topicContent = contentByTopicId.getOrDefault(topic.getId(), Collections.emptyList());
                     List<ContentItemStructureResponseDto> contentDtos = topicContent.stream()
-                            .sorted(Comparator.comparingInt(ContentItem::getOrderIndex))
+                            .sorted(Comparator.comparingInt(ContentItem::getOrderIndex).thenComparingLong(ContentItem::getId))
                             .map(this::toContentDto)
                             .collect(Collectors.toList());
 
@@ -240,7 +296,7 @@ public class CourseStructureServiceImpl implements CourseStructureService {
         // 2. Fetch Subjects
         List<Subject> subjects = subjectRepository.findByClassEntity_Id(classId).stream()
                 .filter(s -> !s.isDeleted())
-                .sorted(Comparator.comparingInt(Subject::getOrderIndex))
+                .sorted(Comparator.comparingInt(Subject::getOrderIndex).thenComparingLong(Subject::getId))
                 .collect(Collectors.toList());
 
         if (subjects.isEmpty()) {
@@ -264,7 +320,7 @@ public class CourseStructureServiceImpl implements CourseStructureService {
                     List<Chapter> subjectChapters = chaptersBySubjectId.getOrDefault(subject.getId(), Collections.emptyList());
 
                     List<ChapterStructureResponseDto> chapterDtos = subjectChapters.stream()
-                            .sorted(Comparator.comparingInt(Chapter::getOrderIndex))
+                            .sorted(Comparator.comparingInt(Chapter::getOrderIndex).thenComparingLong(Chapter::getId))
                             // Pass empty list for topics to keep it lightweight
                             .map(chapter -> toChapterDto(chapter, Collections.emptyList()))
                             .collect(Collectors.toList());
@@ -289,7 +345,10 @@ public class CourseStructureServiceImpl implements CourseStructureService {
         return SubjectStructureResponseDto.builder()
                 .id(entity.getId())
                 .name(entity.getName())
+                .description(entity.getDescription())
                 .orderIndex(entity.getOrderIndex())
+                .classId(entity.getClassEntity().getId())
+                .className(entity.getClassEntity().getName())
                 .chapters(chapters)
                 .build();
     }
@@ -300,6 +359,10 @@ public class CourseStructureServiceImpl implements CourseStructureService {
                 .title(entity.getTitle())
                 .status(entity.getStatus())
                 .orderIndex(entity.getOrderIndex())
+                .subjectId(entity.getSubject().getId())
+                .subjectName(entity.getSubject().getName())
+                .classId(entity.getSubject().getClassEntity().getId())
+                .className(entity.getSubject().getClassEntity().getName())
                 .topics(topics)
                 .build();
     }

@@ -55,18 +55,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         try {
             String path = request.getRequestURI();
+            String method = request.getMethod();
 
             AntPathMatcher pathMatcher = new AntPathMatcher();
 
             // Skip JWT authentication for whitelisted paths
             boolean isWhitelisted = securityProperties.getWhiteList()
                     .stream()
-                    .anyMatch(rule -> pathMatcher.match(rule.pattern(), path) &&
-                            (rule.method() == null || rule.method().equalsIgnoreCase(request.getMethod())));
+                    .anyMatch(rule -> {
+                        boolean match = pathMatcher.match(rule.pattern(), path);
+                        boolean methodMatch = (rule.method() == null || rule.method().equalsIgnoreCase(method));
+                        return match && methodMatch;
+                    });
 
             if (isWhitelisted) {
+                log.debug("Path {} is whitelisted, skipping JWT check", path);
                 chain.doFilter(request, response);
-
                 return;
             }
 

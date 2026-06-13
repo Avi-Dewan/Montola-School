@@ -15,6 +15,9 @@ public class SubjectStructureResponseDto {
 
     private Long id;
     private String name;
+    private String description;
     private int orderIndex;
+    private Long classId;
+    private String className;
     private List<ChapterStructureResponseDto> chapters;
 }

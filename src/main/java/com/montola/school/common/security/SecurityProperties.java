@@ -20,6 +20,9 @@ public class SecurityProperties {
     public record WhitelistRule(String pattern, String method) {}
 
     private final List<WhitelistRule> whiteList = List.of(
+            new WhitelistRule("/internal/health", "GET"),
+            new WhitelistRule("/favicon.ico", "GET"),
+            new WhitelistRule("/error", null),
             new WhitelistRule("/api/auth/login", "POST"),
             new WhitelistRule("/api/auth/refresh-token", "POST"),
             new WhitelistRule("/api/auth/register", "POST"),
@@ -29,6 +32,8 @@ public class SecurityProperties {
             new WhitelistRule("/api/auth/reset-password", "POST"),
             new WhitelistRule("/api/v1/classes", "GET"),
             new WhitelistRule("/api/v1/classes/*/public-structure", "GET"),
+            new WhitelistRule("/api/v1/subjects/*/public-structure", "GET"),
+            new WhitelistRule("/api/v1/chapters/*/public-structure", "GET"),
             new WhitelistRule("/api/v1/chapters/*/cover-image", "GET"),
             new WhitelistRule("/api/v1/chapters/public/free", "GET"),
             new WhitelistRule("/api/v1/chapters/*/public", "GET"),
