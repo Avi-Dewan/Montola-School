@@ -94,10 +94,11 @@
 | `config/ResendConfig.java` | Resend email client bean |
 | `config/MessageConfig.java` | i18n message source |
 | **Security** | |
-| `security/JwtAuthenticationFilter.java` | JWT extraction + validation filter |
+| `security/JwtAuthenticationFilter.java` | JWT extraction + validation filter (also optional auth on public paths) |
 | `security/JwtService.java` | JWT token generation + parsing |
 | `security/JwtProperties.java` | JWT config properties (secret, expiry) |
 | `security/SecurityProperties.java` | Whitelisted public paths |
+| `security/SecurityUtils.java` | `currentUserIdOrNull()` — safe current-user lookup where auth is optional |
 | `security/CustomAuthenticationEntryPoint.java` | 401 error handler |
 | `security/CustomAccessDeniedHandler.java` | 403 error handler |
 | **Exception** | |
@@ -119,6 +120,11 @@
 | `dto/ErrorResponse.java` | Standardized error response |
 | **Service** | |
 | `service/BusinessEmailService.java` | Email sending (activation, reset, purchase) |
+| **Storage** | |
+| `storage/FileStorageService.java` | Abstraction over shop product file storage |
+| `storage/S3FileStorageService.java` | S3 provider — private bucket + presigned URLs |
+| `storage/ExternalLinkFileStorageService.java` | Default provider — keeps an external reference as-is |
+| `storage/StorageProperties.java` | `app.storage.*` config (provider, bucket, region, TTL, prefix) |
 
 ### `course/` — Course Content Management
 
@@ -181,19 +187,65 @@
 | `service/FreeEnrollmentService.java` | Free enrollment interface |
 | `service/impl/FreeEnrollmentServiceImpl.java` | Free enrollment implementation |
 
+### `shop/` — Shop Products, Bundles & Shop Payments
+
+| File | Purpose |
+|------|---------|
+| `controller/ShopCatalogController.java` | Public catalog: levels, classes, products, featured, bundles |
+| `controller/ShopPurchaseController.java` | Gated content, download, my-purchases, payment submit/list |
+| `controller/ShopAdminController.java` | Payment verification + product/bundle admin (ADMIN/MANAGER) |
+| `enums/ShopProductType.java` | Product types; `isDownloadable()` drives download eligibility |
+| `enums/ShopProductFormat.java` | `PDF`, `INTERACTIVE` |
+| `enums/BundleAudience.java` | `GENERAL`, `TEACHER_COACHING` |
+| `enums/BundleAccessMode.java` | `ONLINE`, `DOWNLOAD` |
+| `enums/ShopItemStatus.java` | `DRAFT`, `PUBLISHED` |
+| `enums/EntitlementSource.java` | `PAYMENT`, `MANUAL` |
+| `model/ShopProduct.java` | Product with optional level/class/subject/chapter scope + content |
+| `model/ShopBundle.java` | Bundle of products (`@ManyToMany` via `shop_bundle_products`) |
+| `model/ShopEntitlement.java` | User ↔ product *or* bundle access grant |
+| `model/ShopPayment.java` | Shop payment (`PENDING → VERIFIED/REJECTED`) |
+| `repository/*` | 4 JPA repositories (soft-delete-aware finders) |
+| `service/ShopCatalogService.java` | Public catalog queries |
+| `service/ShopAccessService.java` | Entitlement/content/download rules + my-purchases |
+| `service/ShopPaymentService.java` | Payment submission and verification (grants entitlement) |
+| `service/ShopAdminService.java` | Product/bundle CRUD + file upload |
+| `service/ShopDtoAssembler.java` | Hand-written entity → DTO assembly (derived fields) |
+| `dto/*` | 15 DTOs — cards, detail, content, download, bundle, purchases, payments, requests |
+
+### `care/` — Academic Care Leads
+
+| File | Purpose |
+|------|---------|
+| `controller/CareLeadController.java` | Public submit + ADMIN/MANAGER list/update/delete |
+| `enums/CareLeadStatus.java` | `NEW, CONTACTED, ENROLLED, CLOSED` |
+| `model/CareLead.java` | Enquiry (name, phone, level, area, message, status) — personal data |
+| `repository/CareLeadRepository.java` | Newest-first listing |
+| `service/CareLeadService.java` + impl | Lead capture and follow-up |
+
+### `notice/` — Homepage Notices
+
+| File | Purpose |
+|------|---------|
+| `controller/NoticeController.java` | Public active list + ADMIN/MANAGER management |
+| `enums/NoticeType.java` | `INFO, IMPORTANT, URGENT` |
+| `model/Notice.java` | Title, message, type, link, active, orderIndex |
+| `repository/NoticeRepository.java` | Active-ordered and full-ordered finders |
+| `service/NoticeService.java` + impl | Notice CRUD |
+
 ---
 
 ## Resource Files
 
 | File | Purpose |
 |------|---------|
-| `application.yml` | Main config (port, JPA, JWT, Resend, Actuator) |
-| `application-dev.yml` | Dev profile (local DB, flyway off) |
+| `application.yml` | Main config (port, JPA, JWT, Resend, Actuator, storage) |
+| `application-dev.yml` | Dev profile (local DB, flyway enabled, baselined at V12) |
 | `application-prod.yml` | Prod profile (Neon DB, flyway on) |
 | `messages.properties` | Error message keys for i18n |
 | `db/migration/init/V1-V7` | Core schema migrations |
 | `db/migration/2026.1.1/V8-V11` | Feature additions |
 | `db/migration/2026.3.1/V12` | Schema refinements |
+| `db/migration/2026.4.1/V13-V18` | Levels, shop, care leads, notices |
 
 ---
 
