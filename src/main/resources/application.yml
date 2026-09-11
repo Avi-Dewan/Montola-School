@@ -24,6 +24,15 @@ spring:
 
 app:
   frontend-url: ${FRONTEND_URL:http://localhost:3000}
+  storage:
+    # external = keep the stored reference as-is (e.g. a Google Drive id).
+    # s3       = serve shop product files from a private S3 bucket via presigned URLs.
+    provider: ${STORAGE_PROVIDER:external}
+    s3:
+      bucket: ${AWS_S3_BUCKET:}
+      region: ${AWS_REGION:ap-south-1}
+      url-ttl-seconds: ${STORAGE_URL_TTL_SECONDS:300}
+      prefix: ${AWS_S3_PREFIX:shop/}
 
 management:
   endpoints:

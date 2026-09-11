@@ -17,6 +17,7 @@ The backend API server for **Montola School**, an online learning management sys
 | **Migrations** | Flyway |
 | **Auth** | JWT (jjwt 0.11.5) + Spring Security |
 | **Email** | Resend (resend-java 2.0.0) |
+| **File Storage** | AWS S3 (SDK v2) for shop product files, or external links |
 | **API Docs** | SpringDoc OpenAPI / Swagger UI |
 | **Mapping** | MapStruct 1.5.5 |
 | **Build Tool** | Gradle 9 |
@@ -65,6 +66,19 @@ RESEND_API_KEY=re_xxxxxxxxxxxx
 
 # Frontend URL (for CORS and email links)
 FRONTEND_URL=http://localhost:3000
+
+# Shop product files (optional)
+# "external" (default) keeps a supplied reference such as a Google Drive file id
+# and needs no AWS credentials. Use "s3" to serve shop PDFs from a private bucket.
+STORAGE_PROVIDER=external
+AWS_REGION=ap-south-1
+AWS_S3_BUCKET=montola-shop-files
+AWS_S3_PREFIX=shop/
+STORAGE_URL_TTL_SECONDS=300
+# For "s3", credentials come from the standard AWS chain (env vars below, or an
+# instance/task role in production). Never commit real keys.
+# AWS_ACCESS_KEY_ID=
+# AWS_SECRET_ACCESS_KEY=
 ```
 
 ### 3. Start the database
@@ -128,13 +142,19 @@ You can also run Gradle tasks directly:
 | `SECURITY_JWT_EXPIRATION_MINUTES` | Access token expiry in minutes | `60` | All |
 | `RESEND_API_KEY` | Resend email service API key | — | All |
 | `FRONTEND_URL` | Frontend URL for CORS & email links | `http://localhost:3000` | All |
+| `STORAGE_PROVIDER` | Shop file storage: `external` or `s3` | `external` | All |
+| `AWS_S3_BUCKET` | Private S3 bucket for shop product files | — | All (s3) |
+| `AWS_REGION` | AWS region for the bucket | `ap-south-1` | All (s3) |
+| `AWS_S3_PREFIX` | Key prefix for uploaded objects | `shop/` | All (s3) |
+| `STORAGE_URL_TTL_SECONDS` | Presigned download URL lifetime | `300` | All (s3) |
+| `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` | AWS credentials (prefer an instance/task role in prod) | — | All (s3) |
 
 ### Dev vs Prod
 
 | Aspect | Dev Profile | Prod Profile |
 |--------|-------------|--------------|
 | Database | Local Docker PostgreSQL | Neon cloud PostgreSQL (SSL) |
-| Flyway | Disabled (schema managed by JPA) | Enabled (migrations applied) |
+| Flyway | Enabled (baselined at V12 for pre-existing DBs) | Enabled (migrations applied) |
 | DDL | `validate` | `validate` |
 | Connection | Individual env vars | `DB_URL` with `?sslmode=require` |
 | Pool | Default | HikariCP (max 5, min idle 1) |
@@ -170,19 +190,27 @@ Montola-School/
     │   │   ├── repository/            # 4 JPA repositories
     │   │   ├── security/              # CustomUserDetails, JpaUserDetailsService
     │   │   └── service/               # Auth, User, Token services
+    │   ├── care/                      # Academic Care enquiry leads
+    │   │   ├── controller/            # CareLeadController (public submit + admin)
+    │   │   ├── dto/
+    │   │   ├── enums/                 # CareLeadStatus
+    │   │   ├── model/                 # CareLead
+    │   │   ├── repository/
+    │   │   └── service/
     │   ├── common/                    # Shared infrastructure
     │   │   ├── config/                # Security, OpenAPI, Resend, Message configs
     │   │   ├── dto/                   # ErrorResponse
     │   │   ├── exception/             # 11 custom exceptions + GlobalExceptionHandler
     │   │   ├── model/                 # Persistent base entity (audit fields, soft delete)
-    │   │   ├── security/              # JWT filter, service, properties
-    │   │   └── service/               # BusinessEmailService
+    │   │   ├── security/              # JWT filter, service, properties, SecurityUtils
+    │   │   ├── service/               # BusinessEmailService
+    │   │   └── storage/               # FileStorageService: S3 or external references
     │   ├── course/                    # Course content management
     │   │   ├── controller/            # 7 controllers (Class, Subject, Chapter, Topic, Content, Featured, Teacher)
     │   │   ├── dto/                   # 31 DTOs + 5 structure DTOs
-    │   │   ├── enums/                 # ChapterStatus, ContentType, QuizType, etc.
+    │   │   ├── enums/                 # ChapterStatus, ContentItemType, QuizType, etc.
     │   │   ├── mapper/                # 7 MapStruct mappers
-    │   │   ├── model/                 # Entities + content subtypes (Lecture, Quiz, PDF)
+    │   │   ├── model/                 # Entities + content subtypes (Lecture, Quiz, PDF) + Level
     │   │   ├── repository/            # 15 JPA repositories
     │   │   └── service/               # 12 service interfaces + implementations
     │   ├── learner/                   # Student progress & enrollment
@@ -191,19 +219,33 @@ Montola-School/
     │   │   ├── model/                 # ContentProgress, Enrollment
     │   │   ├── repository/
     │   │   └── service/
-    │   └── payment/                   # Payment processing
-    │       ├── controller/            # PaymentController, FreeEnrollmentController
+    │   ├── notice/                    # Homepage notices
+    │   │   ├── controller/            # NoticeController (public read + admin)
+    │   │   ├── dto/
+    │   │   ├── enums/                 # NoticeType
+    │   │   ├── model/                 # Notice
+    │   │   ├── repository/
+    │   │   └── service/
+    │   ├── payment/                   # Chapter payment processing
+    │   │   ├── controller/            # PaymentController, FreeEnrollmentController
+    │   │   ├── dto/
+    │   │   ├── enums/                 # PaymentStatus (PENDING, VERIFIED, REJECTED)
+    │   │   ├── model/                 # Payment entity
+    │   │   ├── repository/
+    │   │   └── service/               # Payment + FreeEnrollment services
+    │   └── shop/                      # Shop products, bundles, entitlements, payments
+    │       ├── controller/            # Catalog, Purchase, Admin
     │       ├── dto/
-    │       ├── enums/                 # PaymentStatus (PENDING, VERIFIED, REJECTED)
-    │       ├── model/                 # Payment entity
+    │       ├── enums/                 # ShopProductType, ProductFormat, BundleAudience, ...
+    │       ├── model/                 # ShopProduct, ShopBundle, ShopEntitlement, ShopPayment
     │       ├── repository/
-    │       └── service/               # Payment + FreeEnrollment services
+    │       └── service/               # Catalog, Access, Payment, Admin + DTO assembler
     └── resources/
         ├── application.yml            # Main config
-        ├── application-dev.yml        # Dev profile (local DB, no Flyway)
+        ├── application-dev.yml        # Dev profile (local DB, Flyway enabled)
         ├── application-prod.yml       # Prod profile (Neon DB, Flyway enabled)
         ├── messages.properties        # i18n error messages
-        └── db/migration/              # Flyway SQL migrations (V1–V12)
+        └── db/migration/              # Flyway SQL migrations (V1–V18)
 ```
 
 ---
@@ -362,6 +404,82 @@ Montola-School/
 | GET | `/my-chapters` | Authenticated | All enrolled chapters |
 | GET | `/admin/chapter/{id}/students-progress` | ADMIN/MANAGER/TEACHER | Students' progress |
 
+### Shop (`/api/v1/shop`)
+
+Products are individual items for sale (notes, PDFs, worksheets...); bundles are
+packs of products. Access is granted by an *entitlement*, created when an admin
+verifies a shop payment. Shop payments are separate from chapter payments.
+
+**Catalog (public)**
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | `/levels` | Public | Curriculum levels (JSC/SSC/HSC) |
+| GET | `/classes?levelId=` | Public | Classes of levels browsed per class (only JSC) |
+| GET | `/products?type=&format=&levelId=&classId=&subjectId=&chapterId=` | Public | Published products |
+| GET | `/products/{id}` | Public | Product detail (adds `entitled`/`canDownload` when a token is sent) |
+| GET | `/featured` | Public | Featured published products |
+| GET | `/bundles` | Public | Published bundles |
+| GET | `/bundles/{id}` | Public | Bundle detail |
+
+**Content & purchases (authenticated)**
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | `/products/{id}/content` | Entitled | Full content (interactive HTML or PDF reference) |
+| GET | `/products/{id}/download` | Download-entitled | Time-limited download link |
+| GET | `/my-purchases` | Authenticated | Everything the user owns |
+| POST | `/payments/submit` | Authenticated | Submit a shop payment |
+| GET | `/payments/my` | Authenticated | The user's shop payments |
+
+**Admin (ADMIN/MANAGER)**
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | `/payments` | ADMIN/MANAGER | All shop payments |
+| GET | `/payments/unverified` | ADMIN/MANAGER | Payments awaiting verification |
+| PUT | `/payments/{id}/verify` | ADMIN/MANAGER | Verify → grants the entitlement |
+| PUT | `/payments/{id}/reject` | ADMIN/MANAGER | Reject |
+| GET | `/admin/products` | ADMIN/MANAGER | All products, including drafts |
+| POST | `/admin/products` | ADMIN/MANAGER | Create product |
+| PUT | `/admin/products/{id}` | ADMIN/MANAGER | Update product |
+| DELETE | `/admin/products/{id}` | ADMIN/MANAGER | Soft-delete product |
+| POST | `/admin/products/{id}/file` | ADMIN/MANAGER | Upload the product PDF (requires `STORAGE_PROVIDER=s3`) |
+| GET | `/admin/bundles` | ADMIN/MANAGER | All bundles, including drafts |
+| POST | `/admin/bundles` | ADMIN/MANAGER | Create bundle |
+| PUT | `/admin/bundles/{id}` | ADMIN/MANAGER | Update bundle |
+| DELETE | `/admin/bundles/{id}` | ADMIN/MANAGER | Soft-delete bundle |
+
+**Access rules**
+
+- Staff (ADMIN/MANAGER/TEACHER) may preview any product.
+- A purchase grants an entitlement directly, or through a bundle containing the product.
+- Downloads require a downloadable type (`WORKSHEET`, `DRILLSHEET`, `RECALL_CARD`), an
+  entitlement through a bundle whose access mode is `DOWNLOAD`, and a TEACHER account.
+- The payment amount is always taken from the catalog, never from the request body.
+
+### Academic Care (`/api/v1/care`)
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| POST | `/leads` | Public | Submit an enquiry (name + phone) |
+| GET | `/admin/leads` | ADMIN/MANAGER | List enquiries |
+| PUT | `/admin/leads/{id}` | ADMIN/MANAGER | Update follow-up status |
+| DELETE | `/admin/leads/{id}` | ADMIN/MANAGER | Soft-delete an enquiry |
+
+> This holds parents' names and phone numbers. Keep admin access restricted and
+> consider a retention policy.
+
+### Notices (`/api/v1/notices`)
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | `/` | Public | Active notices, ordered |
+| GET | `/admin` | ADMIN/MANAGER | All notices, including hidden |
+| POST | `/admin` | ADMIN/MANAGER | Create a notice |
+| PUT | `/admin/{id}` | ADMIN/MANAGER | Update a notice |
+| DELETE | `/admin/{id}` | ADMIN/MANAGER | Soft-delete a notice |
+
 ### Admin (`/api/v1/admin`)
 
 | Method | Endpoint | Auth | Description |
@@ -375,16 +493,45 @@ Montola-School/
 ### Course Hierarchy
 
 ```
-Class
- └── Subject
-      └── Chapter (has cover image, price, free flag, status)
-           ├── Topic
-           │    └── ContentItem
-           │         ├── Lecture (video + rich text)
-           │         ├── Quiz (MCQ, fill-blank, matching, written)
-           │         └── GooglePdfContent (Google Drive PDF)
-           └── ChapterTeacher (assignment join table)
+Level (JSC / SSC / HSC)
+ └── Class
+      └── Subject
+           └── Chapter (has cover image, price, free flag, status)
+                ├── Topic
+                │    └── ContentItem
+                │         ├── Lecture (video + rich text)
+                │         ├── Quiz (MCQ, fill-blank, matching, written)
+                │         └── GooglePdfContent (Google Drive PDF)
+                └── ChapterTeacher (assignment join table)
 ```
+
+A Level groups classes. `split_into_classes` records whether the level is browsed
+per class (JSC: Class 6/7/8) or as a whole (SSC, HSC); the shop class tier uses it.
+The chapter is the purchasable unit for courses.
+
+### Shop
+
+- **ShopProduct** — a sellable item: title, description, type, format, price, status,
+  featured, preview, optional scope (level/class/subject/chapter), and its content
+  (interactive HTML, or a file reference plus page count)
+- **ShopBundle** — a pack of products, with an audience (`GENERAL` /
+  `TEACHER_COACHING`) and access mode (`ONLINE` / `DOWNLOAD`)
+- **ShopEntitlement** — a user's access to one product *or* one bundle (exactly one,
+  enforced by a check constraint), with source and granted-at
+- **ShopPayment** — a shop purchase (product or bundle) with
+  `PENDING → VERIFIED / REJECTED`; verifying creates the entitlement
+
+Product and bundle deletes are soft, so payment and entitlement history is retained.
+
+### Academic Care
+
+- **CareLead** — name, phone, level, area, message, status
+  (`NEW → CONTACTED → ENROLLED / CLOSED`). Personal data.
+
+### Notices
+
+- **Notice** — title, message, type (`INFO` / `IMPORTANT` / `URGENT`), optional link,
+  active flag and order index
 
 ### User & Auth
 
@@ -444,15 +591,60 @@ PostgreSQL 16 runs in Docker. Start it with:
 
 This uses `dev-setup/docker-compose.yml` to create a container named `montola_db` with a persistent volume.
 
-- **Flyway is disabled** in dev — Hibernate validates the schema
-- Schema is initialized via JPA/Hibernate on first run
+- **Flyway is enabled** in dev, running the same migrations as prod, so the two schemas cannot drift
+- A database created before this change is baselined at V12, so only V13+ are applied to it;
+  a fresh database gets the full `V1..V18` run
+- Hibernate runs with `ddl-auto: validate` — it checks the schema but never creates it
 
 ### Production (Neon)
 
 - Uses **Neon** cloud PostgreSQL with SSL (`?sslmode=require`)
 - **Flyway is enabled** — runs migrations from `src/main/resources/db/migration/`
-- 12 migration files organized in versioned folders (`init/`, `2026.1.1/`, `2026.3.1/`)
+- 18 migration files organized in versioned folders (`init/`, `2026.1.1/`, `2026.3.1/`, `2026.4.1/`)
 - Connection pool: HikariCP (max 5 connections, min 1 idle)
+
+---
+
+## File Storage (Shop)
+
+Shop product files are stored behind a `FileStorageService` abstraction, so the
+backing provider can change without touching shop logic.
+
+| Provider | Behaviour | When to use |
+|----------|-----------|-------------|
+| `external` (default) | Keeps whatever reference is supplied (e.g. a Google Drive file id) and returns it unchanged | Local development, CI, or if you keep using Drive |
+| `s3` | Stores uploaded files in a **private** S3 bucket and serves them via short-lived presigned URLs | Production |
+
+To use S3:
+
+1. Create a private bucket and leave **Block Public Access** enabled.
+2. Enable server-side encryption (SSE-S3 is enough).
+3. Grant the application least-privilege access — put, get and delete on the
+   configured prefix only:
+
+   ```json
+   {
+     "Version": "2012-10-17",
+     "Statement": [{
+       "Effect": "Allow",
+       "Action": ["s3:PutObject", "s3:GetObject", "s3:DeleteObject"],
+       "Resource": "arn:aws:s3:::montola-shop-files/shop/*"
+     }]
+   }
+   ```
+
+4. Set `STORAGE_PROVIDER=s3`, `AWS_S3_BUCKET` and `AWS_REGION`. Credentials come
+   from the standard AWS chain — prefer an instance/task role over static keys.
+
+**Cost:** S3 has no always-free tier; usage draws on Free Tier credits (new accounts
+get $100–200 for 6 months). At this project's volume (a few GB, modest downloads) the
+cost is around $0–1/month. Egress is the main cost, so front the bucket with
+CloudFront when traffic grows — CloudFront includes 1 TB of egress per month,
+always free, and swapping it in is a change to `FileStorageService` only.
+
+The PDF variant of a product stores a reference (S3 key or external id) plus a page
+count; downloading requires an entitlement through a `DOWNLOAD` bundle and a TEACHER
+account. See the [Shop API](#shop-apiv1shop) section for the access rules.
 
 ---
 

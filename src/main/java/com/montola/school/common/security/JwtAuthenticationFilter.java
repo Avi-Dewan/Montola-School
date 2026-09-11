@@ -69,7 +69,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     });
 
             if (isWhitelisted) {
-                log.debug("Path {} is whitelisted, skipping JWT check", path);
+                log.debug("Path {} is whitelisted", path);
+
+                // Public endpoints may still carry a token: the shop product detail needs
+                // to know whether the viewer already owns the product. Populate the security
+                // context when a valid token is present, but never reject the request.
+                tryPopulateAuthentication(request);
+
                 chain.doFilter(request, response);
                 return;
             }
@@ -121,6 +127,48 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         } catch (AuthenticationException e) {
             handlerExceptionResolver.resolveException(request, response, null, e);
+        }
+    }
+
+    /**
+     * Best-effort authentication for whitelisted (public) endpoints.
+     * <p>
+     * A token is optional here: the security context is populated when a valid token
+     * is present, but nothing is ever thrown, so anonymous visitors keep full access.
+     * </p>
+     */
+    private void tryPopulateAuthentication(HttpServletRequest request) {
+        try {
+            String authHeader = request.getHeader("Authorization");
+
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                return;
+            }
+
+            if (SecurityContextHolder.getContext().getAuthentication() != null) {
+                return;
+            }
+
+            String token = authHeader.substring(7);
+            String email = jwtService.extractSubject(token);
+
+            if (!jwtService.isValid(token, email)) {
+                return;
+            }
+
+            UserDetails user = userDetailsService.loadUserByUsername(email);
+
+            var authToken = new UsernamePasswordAuthenticationToken(
+                    user, null, user.getAuthorities());
+
+            authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            SecurityContextHolder.getContext().setAuthentication(authToken);
+
+            log.debug("Optional JWT authentication succeeded for user {} on a public path", email);
+
+        } catch (Exception e) {
+            // An invalid/expired token must never break a public endpoint.
+            log.debug("Ignoring token on whitelisted path: {}", e.getMessage());
         }
     }
 }
