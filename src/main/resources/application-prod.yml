@@ -6,7 +6,12 @@ spring:
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 5
-      minimum-idle: 1
+      # Never hold an idle connection open. Neon drops connections when it suspends,
+      # and maintaining a minimum-idle connection makes the pool reconnect, which
+      # wakes the compute again — the exact loop that exhausts the free allowance.
+      minimum-idle: 0
+      idle-timeout: 60000
+      max-lifetime: 240000
   
   flyway:
     enabled: true
