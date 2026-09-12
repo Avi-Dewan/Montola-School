@@ -16,6 +16,11 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+
+  # Production only: create beans on first use instead of all at startup.
+  # Flyway is explicitly excluded from this via LazyInitializationExcludeFilter.
+  main:
+    lazy-initialization: true
   
   jpa:
     hibernate:
