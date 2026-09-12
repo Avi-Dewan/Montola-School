@@ -155,9 +155,9 @@ You can also run Gradle tasks directly:
 |--------|-------------|--------------|
 | Database | Local Docker PostgreSQL | Neon cloud PostgreSQL (SSL) |
 | Flyway | Enabled (baselined at V12 for pre-existing DBs) | Enabled (migrations applied) |
-| DDL | `validate` | `validate` |
-| Connection | Individual env vars | `DB_URL` with `?sslmode=require` |
-| Pool | Default | HikariCP (max 5, min idle 1) |
+| DDL | `validate` | `none` (Flyway owns the schema) |
+| Lazy init | Off | On (Flyway excluded) |
+| Pool | Default | HikariCP (max 5, min idle 0, idle 60s, max lifetime 4m) |
 
 ---
 
@@ -664,10 +664,11 @@ All endpoints are documented with OpenAPI annotations. Use the "Authorize" butto
 
 ### Multi-Stage Build
 
-The `Dockerfile` uses a 2-stage build:
+The `Dockerfile` uses a 3-stage build:
 
 1. **Build stage** — `gradle:8.5-jdk21`, compiles the app (tests skipped)
-2. **Run stage** — `eclipse-temurin:21-jre-alpine`, runs the JAR
+2. **CDS stage** — `eclipse-temurin:21-jdk-alpine`, generates a Class Data Sharing archive so the JVM starts faster. It runs on the same base image as the runtime, needs no database, and is non-fatal if it fails
+3. **Run stage** — `eclipse-temurin:21-jre-alpine`, runs the JAR via `docker-entrypoint.sh`, which adds the CDS archive when present and applies `JAVA_OPTS`
 
 ### Running in Docker
 
@@ -680,6 +681,64 @@ The `Dockerfile` uses a 2-stage build:
 ```
 
 The container runs on port 8080 and connects to `montola_db` on the Docker network.
+
+---
+
+## Deployment & Runtime (free tier)
+
+The production setup is frontend on Vercel, backend on Render (free), database on Neon (free).
+
+### The health check must never query the database
+
+Neon's free tier **scales to zero after 5 minutes of inactivity**, and any query resets that
+timer. The Actuator health endpoint includes the `db` indicator by default, so a
+5-minute uptime ping (UptimeRobot) against `/internal/health` ran a query every time and
+the database never suspended. At the minimum 0.25 CU that burns roughly **180 CU-hours a
+month against the 100 CU-hour free allowance** — the project then suspends until the next
+billing period.
+
+`management.health.db.enabled: false` disables that indicator, and
+`spring.datasource.hikari.minimum-idle: 0` stops the pool reconnecting (and re-waking the
+compute) every time Neon suspends. Together these let the database actually sleep.
+
+Keep monitoring `/internal/health` — it stays `UP` and still keeps Render warm; it just no
+longer touches the database.
+
+### Cold starts
+
+Render free spins the service down after 15 minutes idle and takes roughly a minute to come
+back. The keep-warm ping avoids that during normal operation. Startup is additionally tuned:
+
+- JVM options in the image's `JAVA_OPTS` (SerialGC, no C2 compilation, no JMX or banner)
+- a CDS archive generated at build time
+- OpenAPI docs disabled in production (`springdoc.*.enabled: false`)
+- `ddl-auto: none` in production, since Flyway owns the schema
+
+Measured locally, the JVM options alone are worth roughly 5–10% of startup — modest, and
+noisy to measure. The larger wins are CDS, skipping schema validation and skipping the
+OpenAPI scan, which matter most on a cold container. Note that `-XX:TieredStopAtLevel=1`
+trades peak throughput for startup CPU: C2 never runs. It suits a ~0.1 CPU instance; drop
+it via `JAVA_OPTS` if sustained throughput ever matters more.
+
+Production also uses `spring.main.lazy-initialization: true`, with Flyway excluded so
+migrations still run at startup. Lazy init is the change most likely to need reverting: if
+the first request after a deploy is slow or anything 503s, turn it off first.
+
+Render's free tier also grants 750 instance hours per workspace per month; keeping one
+service warm 24/7 uses about 730 of them, so the margin is thin.
+
+### Verifying the health check no longer needs the database
+
+```bash
+curl -s http://localhost:8080/internal/health          # {"status":"UP"}
+# now stop the database and call it again
+curl -s http://localhost:8080/internal/health          # still {"status":"UP"}
+```
+
+Before the change the second call returns `503 / DOWN`, because the probe was querying the
+database. Afterwards it stays `UP` — which is exactly what allows Neon to scale to zero.
+To confirm the saving, watch **Compute time** in the Neon console: the active-compute line
+should drop to zero between visits instead of being continuously active.
 
 ---
 
