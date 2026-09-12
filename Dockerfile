@@ -38,8 +38,11 @@ WORKDIR /app
 ARG SPRING_PROFILES_ACTIVE=prod
 ENV SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
 
-# JVM options tuned for a small instance (Render free is ~0.1 CPU / 512 MB):
-# a single-threaded GC, no C2 profiling at startup, no JMX, no banner.
+# JVM options tuned for a small instance (Render free is ~0.1 CPU / 512 MB).
+# SerialGC avoids spawning GC threads on a single-core box; TieredStopAtLevel=1
+# skips C2 compilation, which speeds up startup and reduces CPU contention on a
+# throttled instance — at the cost of peak throughput, since C2 never runs.
+# Remove that one flag (via JAVA_OPTS) if sustained throughput matters more.
 ENV JAVA_OPTS="-XX:+UseSerialGC -XX:TieredStopAtLevel=1 -Xss512k -XX:MaxRAMPercentage=75 -XX:+ExitOnOutOfMemoryError -Dspring.jmx.enabled=false -Dspring.main.banner-mode=off -Djava.security.egd=file:/dev/./urandom"
 
 COPY --from=builder /app/app.jar /app/app.jar

@@ -709,11 +709,16 @@ longer touches the database.
 Render free spins the service down after 15 minutes idle and takes roughly a minute to come
 back. The keep-warm ping avoids that during normal operation. Startup is additionally tuned:
 
-- JVM options in `docker-entrypoint.sh` / the image's `JAVA_OPTS` (SerialGC, no C2 profiling,
-  no JMX or banner)
+- JVM options in the image's `JAVA_OPTS` (SerialGC, no C2 compilation, no JMX or banner)
 - a CDS archive generated at build time
 - OpenAPI docs disabled in production (`springdoc.*.enabled: false`)
 - `ddl-auto: none` in production, since Flyway owns the schema
+
+Measured locally, the JVM options alone are worth roughly 5–10% of startup — modest, and
+noisy to measure. The larger wins are CDS, skipping schema validation and skipping the
+OpenAPI scan, which matter most on a cold container. Note that `-XX:TieredStopAtLevel=1`
+trades peak throughput for startup CPU: C2 never runs. It suits a ~0.1 CPU instance; drop
+it via `JAVA_OPTS` if sustained throughput ever matters more.
 
 Production also uses `spring.main.lazy-initialization: true`, with Flyway excluded so
 migrations still run at startup. Lazy init is the change most likely to need reverting: if
