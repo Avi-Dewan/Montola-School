@@ -19,7 +19,17 @@ spring:
   
   jpa:
     hibernate:
-      ddl-auto: validate
+      # Flyway owns the schema in production, so skip boot-time validation: it is
+      # a stack of metadata round-trips against a remote (and often suspended)
+      # database. It also lets a deploy succeed while Neon is out of quota.
+      ddl-auto: none
+
+# API docs are a development tool; generating them costs startup time and memory.
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
 
 app:
   frontend-url: ${FRONTEND_URL}
