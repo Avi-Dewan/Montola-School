@@ -29,6 +29,15 @@ public interface FileStorageService {
      */
     String url(String key, Duration ttl);
 
+    /**
+     * Reads the raw bytes of a stored object, so the caller can process them
+     * (for example watermark a PDF) before serving them.
+     *
+     * @throws UnsupportedOperationException when the provider does not hold the
+     *                                       bytes itself, such as an external link
+     */
+    byte[] read(String key);
+
     void delete(String key);
 
     StorageProvider provider();

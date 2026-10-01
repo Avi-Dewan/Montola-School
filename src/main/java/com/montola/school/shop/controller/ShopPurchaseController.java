@@ -12,7 +12,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -46,6 +48,19 @@ public class ShopPurchaseController {
     public ResponseEntity<ShopDownloadDto> getDownload(@AuthenticationPrincipal CustomUserDetails currentUser,
                                                        @PathVariable Long id) {
         return ResponseEntity.ok(accessService.getDownload(currentUser.getId(), id));
+    }
+
+    @Operation(summary = "The product file with the buyer's watermark, for viewing or download")
+    @GetMapping("/products/{id}/file")
+    public ResponseEntity<byte[]> getFile(@AuthenticationPrincipal CustomUserDetails currentUser,
+                                          @PathVariable Long id) {
+        byte[] file = accessService.getProductFile(currentUser.getId(), id);
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"product-" + id + ".pdf\"")
+                .header(HttpHeaders.CACHE_CONTROL, "no-store")
+                .body(file);
     }
 
     @Operation(summary = "Everything the signed-in user owns")

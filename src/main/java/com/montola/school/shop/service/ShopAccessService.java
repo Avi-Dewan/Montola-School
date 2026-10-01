@@ -29,6 +29,12 @@ public interface ShopAccessService {
     ShopDownloadDto getDownload(Long userId, Long productId);
 
     /**
+     * The product's file with the buyer's mark stamped into it, ready to stream.
+     * Only files the application stores itself can be served this way.
+     */
+    byte[] getProductFile(Long userId, Long productId);
+
+    /**
      * Entitlements as purchases. Elements are either a product purchase or a bundle
      * purchase, matching the shape the frontend consumes.
      */

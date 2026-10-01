@@ -34,6 +34,13 @@ public class ExternalLinkFileStorageService implements FileStorageService {
     }
 
     @Override
+    public byte[] read(String key) {
+        throw new UnsupportedOperationException(
+                "The 'external' storage provider does not hold the file bytes. "
+                        + "Set app.storage.provider=s3 to serve watermarked copies.");
+    }
+
+    @Override
     public void delete(String key) {
         // Nothing to delete — the referenced file lives outside this application.
     }

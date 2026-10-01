@@ -96,6 +96,14 @@ public class S3FileStorageService implements FileStorageService {
     }
 
     @Override
+    public byte[] read(String key) {
+        return s3Client.getObjectAsBytes(GetObjectRequest.builder()
+                .bucket(properties.getS3().getBucket())
+                .key(key)
+                .build()).asByteArray();
+    }
+
+    @Override
     public void delete(String key) {
         if (key == null || key.isBlank()) {
             return;
