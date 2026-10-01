@@ -17,6 +17,7 @@ public interface GooglePdfContentMapper {
 
     GooglePdfContent toEntity(GooglePdfContentRequestDto dto);
 
+    @Mapping(target = "type", constant = "PDF")
     @Mapping(source = "contentItem.topic.id", target = "topicId")
     @Mapping(source = "contentItem.topic.title", target = "topicTitle")
     @Mapping(source = "contentItem.title", target = "title")

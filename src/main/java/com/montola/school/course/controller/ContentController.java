@@ -14,7 +14,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -108,6 +110,24 @@ public class ContentController {
         Object content = contentAccessService.getContentById(id, currentUser.getId(), currentUser.isAdminOrManagerOrTeacher());
 
         return ResponseEntity.ok(content);
+    }
+
+    @Operation(summary = "Get the PDF file for a content item (with enrollment check)",
+            description = "Streams the PDF with the reader's watermark stamped in. Enforces the same " +
+                    "enrollment and sequential-access rules as the content endpoint, so the file is " +
+                    "only ever handed over after the metadata would have been readable.")
+    @GetMapping("/{id}/file")
+    public ResponseEntity<byte[]> getPdfFile(@PathVariable Long id) {
+        User currentUser = userService.getCurrentUser();
+        log.info("User {} requesting PDF file for content {}", currentUser.getId(), id);
+
+        byte[] file = contentAccessService.getPdfFile(id, currentUser.getId(), currentUser.isAdminOrManagerOrTeacher());
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"content-" + id + ".pdf\"")
+                .header(HttpHeaders.CACHE_CONTROL, "no-store")
+                .body(file);
     }
 
     @Operation(summary = "Update an existing lecture by content item ID")

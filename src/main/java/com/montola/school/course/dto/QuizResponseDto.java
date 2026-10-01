@@ -18,6 +18,7 @@ import java.util.List;
 public class QuizResponseDto {
 
     private Long id;
+    private String type;
     private QuizType quizType;
     private String title;
     private String instruction;

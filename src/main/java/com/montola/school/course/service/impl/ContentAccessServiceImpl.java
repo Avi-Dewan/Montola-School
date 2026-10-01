@@ -1,7 +1,10 @@
 package com.montola.school.course.service.impl;
 
+import com.montola.school.auth.model.User;
+import com.montola.school.auth.repository.UserRepository;
 import com.montola.school.common.exception.AccessDeniedCustomException;
 import com.montola.school.common.exception.ResourceNotFoundException;
+import com.montola.school.common.watermark.PdfWatermarker;
 import com.montola.school.course.dto.GooglePdfContentResponseDto;
 import com.montola.school.course.dto.LectureResponseDto;
 import com.montola.school.course.dto.QuizResponseDto;
@@ -19,6 +22,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
 
 /**
  * Implementation of ContentAccessService.
@@ -38,6 +43,8 @@ public class ContentAccessServiceImpl implements ContentAccessService {
     private final LectureService lectureService;
     private final QuizService quizService;
     private final GooglePdfContentService pdfService;
+    private final UserRepository userRepository;
+    private final PdfWatermarker watermarker;
 
     @Override
     public Object getContentById(Long contentItemId, Long userId, boolean isAdminOrManagerOrTeacher) {
@@ -77,6 +84,26 @@ public class ContentAccessServiceImpl implements ContentAccessService {
     @Override
     public GooglePdfContentResponseDto getPdfByContentItemId(Long contentItemId, Long userId) {
         return pdfService.getByContentItemId(contentItemId);
+    }
+
+    @Override
+    public byte[] getPdfFile(Long contentItemId, Long userId, boolean isAdminOrManagerOrTeacher) {
+        ContentItem contentItem = contentItemRepository.findById(contentItemId)
+                .orElseThrow(() -> new ResourceNotFoundException("course.content.notfound"));
+
+        if (contentItem.getType() != ContentItemType.PDF) {
+            throw new ResourceNotFoundException("course.content.notfound");
+        }
+
+        checkAccess(userId, isAdminOrManagerOrTeacher, contentItem.getTopic().getChapter(), contentItem);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("user.notfound"));
+
+        String mark = user.getEmail() + " · " + userId + " · " + LocalDate.now();
+        log.info("Serving watermarked PDF content {} to user {}", contentItemId, userId);
+
+        return watermarker.stamp(pdfService.getFileBytes(contentItemId), mark);
     }
 
     private void checkAccess(Long userId, boolean isAdminOrManagerOrTeacher, Chapter chapter, ContentItem currentItem) {

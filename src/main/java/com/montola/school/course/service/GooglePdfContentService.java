@@ -63,6 +63,15 @@ public interface GooglePdfContentService {
     GooglePdfContentResponseDto getByContentItemId(Long contentItemId);
 
     /**
+     * Reads the raw bytes of a PDF content item from whichever provider holds it,
+     * so the caller can watermark them before serving.
+     *
+     * @param contentItemId the content item ID
+     * @return the file bytes
+     */
+    byte[] getFileBytes(Long contentItemId);
+
+    /**
      * Updates an existing Google PDF content by its associated content item ID.
      *
      * @param contentItemId the content item ID

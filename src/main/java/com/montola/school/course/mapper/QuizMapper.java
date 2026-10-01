@@ -19,6 +19,7 @@ public interface QuizMapper {
 
     Quiz toEntity(QuizRequestDto dto);
 
+    @Mapping(target = "type", constant = "QUIZ")
     @Mapping(source = "contentItem.topic.id", target = "topicId")
     @Mapping(source = "contentItem.topic.title", target = "topicTitle")
     @Mapping(source = "contentItem.title", target = "title")

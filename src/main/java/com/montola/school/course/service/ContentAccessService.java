@@ -37,4 +37,10 @@ public interface ContentAccessService {
      * Get PDF content by content item ID.
      */
     GooglePdfContentResponseDto getPdfByContentItemId(Long contentItemId, Long userId);
+
+    /**
+     * Get the bytes of a PDF content item with the reader's watermark stamped in,
+     * after the same enrollment and sequential-access checks as the metadata.
+     */
+    byte[] getPdfFile(Long contentItemId, Long userId, boolean isAdminOrManagerOrTeacher);
 }

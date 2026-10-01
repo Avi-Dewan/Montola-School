@@ -16,6 +16,7 @@ import java.time.LocalDateTime;
 public class LectureResponseDto {
 
     private Long id;
+    private String type;
     private String title;
     private String videoId;
     private String content;

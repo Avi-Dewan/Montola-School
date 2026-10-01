@@ -1,6 +1,8 @@
 package com.montola.school.course.service.impl;
 
 import com.montola.school.common.exception.ResourceNotFoundException;
+import com.montola.school.common.storage.FileStorageService;
+import com.montola.school.common.storage.GoogleDriveFileReader;
 import com.montola.school.course.dto.GooglePdfContentRequestDto;
 import com.montola.school.course.dto.GooglePdfContentResponseDto;
 import com.montola.school.course.enums.ContentItemType;
@@ -35,6 +37,8 @@ public class GooglePdfContentServiceImpl implements GooglePdfContentService {
     private final GooglePdfContentRepository googlePdfContentRepository;
     private final TopicRepository topicRepository;
     private final ContentItemRepository contentItemRepository;
+    private final FileStorageService fileStorageService;
+    private final GoogleDriveFileReader googleDriveFileReader;
 
     private final GooglePdfContentMapper googlePdfContentMapper;
 
@@ -103,8 +107,15 @@ public class GooglePdfContentServiceImpl implements GooglePdfContentService {
 
         existing.getContentItem().setTitle(dto.getTitle());
         existing.getContentItem().setOrderIndex(dto.getOrderIndex());
-        existing.setGoogleFileId(dto.getGoogleFileId());
-        existing.setPageCount(dto.getPageCount());
+
+        // The file reference is no longer returned to clients, so an omitted value
+        // on edit means "keep the current file" instead of "clear it".
+        if (dto.getGoogleFileId() != null && !dto.getGoogleFileId().isBlank()) {
+            existing.setGoogleFileId(dto.getGoogleFileId());
+        }
+        if (dto.getPageCount() != null) {
+            existing.setPageCount(dto.getPageCount());
+        }
 
         GooglePdfContent saved = googlePdfContentRepository.save(existing);
 
@@ -138,6 +149,24 @@ public class GooglePdfContentServiceImpl implements GooglePdfContentService {
                 .orElseThrow(() -> new ResourceNotFoundException("google.pdf.content.notfound"));
 
         return googlePdfContentMapper.toResponseDto(entity);
+    }
+
+    @Override
+    public byte[] getFileBytes(Long contentItemId) {
+        log.debug("Reading PDF bytes for content item {}", contentItemId);
+
+        GooglePdfContent content = googlePdfContentRepository.findByContentItem_Id(contentItemId)
+                .filter(g -> !g.isDeleted())
+                .orElseThrow(() -> new ResourceNotFoundException("google.pdf.content.notfound"));
+
+        String key = content.getGoogleFileId();
+
+        return switch (content.getStorageProvider()) {
+            case AWS_S3 -> fileStorageService.read(key);
+            case GOOGLE_DRIVE -> googleDriveFileReader.fetch(key);
+            default -> throw new IllegalStateException(
+                    "PDF content " + content.getId() + " is held by an unsupported storage provider.");
+        };
     }
 
     @Override
