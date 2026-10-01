@@ -1,8 +1,11 @@
 package com.montola.school.course.service.impl;
 
+import com.montola.school.common.storage.FileStorageService;
+import com.montola.school.common.storage.StorageProperties;
 import com.montola.school.course.dto.LectureRequestDto;
 import com.montola.school.course.dto.LectureResponseDto;
 import com.montola.school.course.enums.ContentItemType;
+import com.montola.school.course.enums.StorageProvider;
 import com.montola.school.course.mapper.LectureMapper;
 import com.montola.school.course.model.ContentItem;
 import com.montola.school.course.model.contents.Lecture;
@@ -17,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.util.List;
 
 /**
@@ -36,6 +40,8 @@ public class LectureServiceImpl implements LectureService {
     private final LectureRepository lectureRepository;
     private final TopicRepository topicRepository;
     private final ContentItemRepository contentItemRepository;
+    private final FileStorageService fileStorageService;
+    private final StorageProperties storageProperties;
 
     private final LectureMapper lectureMapper;
 
@@ -60,7 +66,7 @@ public class LectureServiceImpl implements LectureService {
 
         Lecture saved = lectureRepository.save(entity);
 
-        return lectureMapper.toResponseDto(saved);
+        return toDto(saved);
     }
 
     @Override
@@ -70,7 +76,7 @@ public class LectureServiceImpl implements LectureService {
         return lectureRepository.findAll()
                 .stream()
                 .filter(l -> !l.isDeleted())
-                .map(lectureMapper::toResponseDto)
+                .map(this::toDto)
                 .toList();
     }
 
@@ -86,7 +92,7 @@ public class LectureServiceImpl implements LectureService {
                     return new ResourceNotFoundException("lecture.notfound");
                 });
 
-        return lectureMapper.toResponseDto(entity);
+        return toDto(entity);
     }
 
     @Override
@@ -104,12 +110,20 @@ public class LectureServiceImpl implements LectureService {
         
         existing.getContentItem().setTitle(dto.getTitle());
         existing.getContentItem().setOrderIndex(dto.getOrderIndex());
-        existing.setVideoId(dto.getVideoId());
+
+        // A blank video id on edit keeps the current video and its provider, because
+        // the storage key is never sent back to the client. Supplying one means the
+        // lecture points at YouTube again.
+        if (dto.getVideoId() != null && !dto.getVideoId().isBlank()) {
+            existing.setVideoId(dto.getVideoId());
+            existing.setStorageProvider(StorageProvider.GOOGLE_DRIVE);
+        }
+
         existing.setContent(dto.getContent());
 
         Lecture saved = lectureRepository.save(existing);
 
-        return lectureMapper.toResponseDto(saved);
+        return toDto(saved);
     }
 
     @Override
@@ -137,8 +151,41 @@ public class LectureServiceImpl implements LectureService {
         Lecture entity = lectureRepository.findByContentItem_Id(contentItemId)
                 .filter(l -> !l.isDeleted())
                 .orElseThrow(() -> new ResourceNotFoundException("lecture.notfound"));
-                
-        return lectureMapper.toResponseDto(entity);
+
+        return toDto(entity);
+    }
+
+    @Override
+    @Transactional
+    public LectureResponseDto uploadVideo(Long contentItemId, byte[] content, String filename, String contentType) {
+        log.info("Uploading {} bytes of video for lecture content item {}", content.length, contentItemId);
+
+        Lecture entity = lectureRepository.findByContentItem_Id(contentItemId)
+                .filter(l -> !l.isDeleted())
+                .orElseThrow(() -> new ResourceNotFoundException("lecture.notfound"));
+
+        String key = fileStorageService.store(content, filename, contentType);
+        entity.setVideoId(key);
+        entity.setStorageProvider(StorageProvider.AWS_S3);
+
+        return toDto(lectureRepository.save(entity));
+    }
+
+    /**
+     * Adds a signed playback URL for lectures held in object storage, and keeps the
+     * storage key itself out of the response.
+     */
+    private LectureResponseDto toDto(Lecture entity) {
+        LectureResponseDto dto = lectureMapper.toResponseDto(entity);
+
+        if (entity.getStorageProvider() == StorageProvider.AWS_S3 && entity.getVideoId() != null) {
+            dto.setVideoUrl(fileStorageService.url(
+                    entity.getVideoId(),
+                    Duration.ofSeconds(storageProperties.getS3().getVideoTtlSeconds())));
+            dto.setVideoId(null);
+        }
+
+        return dto;
     }
 
     @Override

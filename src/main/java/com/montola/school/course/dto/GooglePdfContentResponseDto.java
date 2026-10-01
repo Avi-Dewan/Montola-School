@@ -14,6 +14,7 @@ import lombok.*;
 public class GooglePdfContentResponseDto {
 
     private Long id;
+    private Long contentItemId;
     private String type;
     private String title;
     private Integer pageCount;

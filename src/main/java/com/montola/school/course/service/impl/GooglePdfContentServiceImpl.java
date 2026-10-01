@@ -6,6 +6,7 @@ import com.montola.school.common.storage.GoogleDriveFileReader;
 import com.montola.school.course.dto.GooglePdfContentRequestDto;
 import com.montola.school.course.dto.GooglePdfContentResponseDto;
 import com.montola.school.course.enums.ContentItemType;
+import com.montola.school.course.enums.StorageProvider;
 import com.montola.school.course.mapper.GooglePdfContentMapper;
 import com.montola.school.course.model.ContentItem;
 import com.montola.school.course.model.contents.file.GooglePdfContent;
@@ -109,9 +110,11 @@ public class GooglePdfContentServiceImpl implements GooglePdfContentService {
         existing.getContentItem().setOrderIndex(dto.getOrderIndex());
 
         // The file reference is no longer returned to clients, so an omitted value
-        // on edit means "keep the current file" instead of "clear it".
+        // on edit means "keep the current file" instead of "clear it". Supplying one
+        // means the document is hosted externally again.
         if (dto.getGoogleFileId() != null && !dto.getGoogleFileId().isBlank()) {
             existing.setGoogleFileId(dto.getGoogleFileId());
+            existing.setStorageProvider(StorageProvider.GOOGLE_DRIVE);
         }
         if (dto.getPageCount() != null) {
             existing.setPageCount(dto.getPageCount());
@@ -160,6 +163,9 @@ public class GooglePdfContentServiceImpl implements GooglePdfContentService {
                 .orElseThrow(() -> new ResourceNotFoundException("google.pdf.content.notfound"));
 
         String key = content.getGoogleFileId();
+        if (key == null || key.isBlank()) {
+            throw new ResourceNotFoundException("google.pdf.content.notfound");
+        }
 
         return switch (content.getStorageProvider()) {
             case AWS_S3 -> fileStorageService.read(key);
@@ -167,6 +173,23 @@ public class GooglePdfContentServiceImpl implements GooglePdfContentService {
             default -> throw new IllegalStateException(
                     "PDF content " + content.getId() + " is held by an unsupported storage provider.");
         };
+    }
+
+    @Override
+    @Transactional
+    public GooglePdfContentResponseDto uploadFile(Long contentItemId, byte[] content, String filename, String contentType) {
+        log.info("Uploading {} bytes for PDF content item {}", content.length, contentItemId);
+
+        GooglePdfContent entity = googlePdfContentRepository.findByContentItem_Id(contentItemId)
+                .filter(g -> !g.isDeleted())
+                .orElseThrow(() -> new ResourceNotFoundException("google.pdf.content.notfound"));
+
+        String key = fileStorageService.store(content, filename, contentType);
+        entity.setGoogleFileId(key);
+        entity.setStorageProvider(StorageProvider.AWS_S3);
+        entity.setSizeBytes((long) content.length);
+
+        return googlePdfContentMapper.toResponseDto(googlePdfContentRepository.save(entity));
     }
 
     @Override

@@ -16,9 +16,20 @@ import java.time.LocalDateTime;
 public class LectureResponseDto {
 
     private Long id;
+    private Long contentItemId;
     private String type;
     private String title;
+
+    /**
+     * The raw id only for YouTube lectures; object-storage keys stay server-side.
+     */
     private String videoId;
+
+    /**
+     * Short-lived signed playback URL, set for lectures held in object storage.
+     */
+    private String videoUrl;
+
     private String content;
 
     private Long topicId;

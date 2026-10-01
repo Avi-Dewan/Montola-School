@@ -23,7 +23,10 @@ public class LectureRequestDto {
     @Size(max = 200)
     private String title;
 
-    @Size(max = 50)
+    /**
+     * A YouTube id, or an object-storage key when the video is uploaded here.
+     */
+    @Size(max = 500)
     private String videoId;
 
     private String content;

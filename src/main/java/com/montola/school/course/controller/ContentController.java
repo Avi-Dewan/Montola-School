@@ -21,7 +21,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -128,6 +130,48 @@ public class ContentController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"content-" + id + ".pdf\"")
                 .header(HttpHeaders.CACHE_CONTROL, "no-store")
                 .body(file);
+    }
+
+    @Operation(summary = "Upload the file for a PDF content item",
+            description = "Stores the document in the application's object storage and serves it from " +
+                    "there, instead of an external reference such as a Google Drive file id.")
+    @PostMapping("/{id}/file")
+    public ResponseEntity<GooglePdfContentResponseDto> uploadPdfFile(@AuthenticationPrincipal CustomUserDetails currentUser,
+                                                                     @PathVariable Long id,
+                                                                     @RequestParam("file") MultipartFile file) {
+        log.info("User {} uploading a PDF file for content {}", currentUser.getId(), id);
+
+        if (!authorizationService.canEditContent(currentUser.getId(), id)) {
+            throw new AccessDeniedException("Insufficient permissions to upload content");
+        }
+
+        return ResponseEntity.ok(googlePdfContentService.uploadFile(
+                id, readBytes(file), file.getOriginalFilename(), file.getContentType()));
+    }
+
+    @Operation(summary = "Upload the video for a lecture content item",
+            description = "Stores the video in the application's object storage and serves it through a " +
+                    "short-lived signed URL, instead of an embeddable YouTube id.")
+    @PostMapping("/{id}/video")
+    public ResponseEntity<LectureResponseDto> uploadLectureVideo(@AuthenticationPrincipal CustomUserDetails currentUser,
+                                                                 @PathVariable Long id,
+                                                                 @RequestParam("file") MultipartFile file) {
+        log.info("User {} uploading a video for content {}", currentUser.getId(), id);
+
+        if (!authorizationService.canEditContent(currentUser.getId(), id)) {
+            throw new AccessDeniedException("Insufficient permissions to upload content");
+        }
+
+        return ResponseEntity.ok(lectureService.uploadVideo(
+                id, readBytes(file), file.getOriginalFilename(), file.getContentType()));
+    }
+
+    private static byte[] readBytes(MultipartFile file) {
+        try {
+            return file.getBytes();
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Could not read the uploaded file.", e);
+        }
     }
 
     @Operation(summary = "Update an existing lecture by content item ID")

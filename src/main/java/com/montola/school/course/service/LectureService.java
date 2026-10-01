@@ -72,6 +72,15 @@ public interface LectureService {
     LectureResponseDto updateByContentItemId(Long contentItemId, LectureRequestDto updated);
 
     /**
+     * Stores an uploaded video in application object storage and points the lecture
+     * at it, moving the lecture off YouTube.
+     *
+     * @param contentItemId the content item ID
+     * @return the updated lecture
+     */
+    LectureResponseDto uploadVideo(Long contentItemId, byte[] content, String filename, String contentType);
+
+    /**
      * Soft deletes a lecture by its associated content item ID.
      *
      * @param contentItemId the content item ID

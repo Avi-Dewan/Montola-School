@@ -43,6 +43,13 @@ public class StorageProperties {
         private String bucket;
         private String region = "ap-south-1";
         private long urlTtlSeconds = 300;
+
+        /**
+         * Video URLs must outlive playback, so they are signed for much longer
+         * than document downloads.
+         */
+        private long videoTtlSeconds = 7200;
+
         private String prefix = "shop/";
     }
 }

@@ -43,6 +43,8 @@ app:
       bucket: ${AWS_S3_BUCKET:}
       region: ${AWS_REGION:ap-south-1}
       url-ttl-seconds: ${STORAGE_URL_TTL_SECONDS:300}
+      # Longer, because a signed video URL has to outlive playback.
+      video-ttl-seconds: ${STORAGE_VIDEO_TTL_SECONDS:7200}
       prefix: ${AWS_S3_PREFIX:shop/}
 
 management:

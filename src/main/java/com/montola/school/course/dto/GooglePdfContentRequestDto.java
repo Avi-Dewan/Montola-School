@@ -23,8 +23,10 @@ public class GooglePdfContentRequestDto {
     @Size(max = 255)
     private String title;
 
-    @NotBlank
-    @Size(max = 200)
+    /**
+     * Optional: a file can be uploaded straight after the content item is created.
+     */
+    @Size(max = 500)
     private String googleFileId;
 
     private Integer pageCount;

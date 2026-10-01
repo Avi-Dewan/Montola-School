@@ -26,7 +26,7 @@ public class GooglePdfContent extends ContentFile {
     @JoinColumn(name = "content_item_id", nullable = false)
     private ContentItem contentItem;
 
-    @Column(name = "file_id", nullable = false, length = 200)
+    @Column(name = "file_id", length = 500)
     private String googleFileId;
 
     @Column(name = "page_count")

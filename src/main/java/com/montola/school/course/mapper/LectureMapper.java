@@ -19,6 +19,7 @@ public interface LectureMapper {
     Lecture toEntity(LectureRequestDto dto);
 
     @Mapping(target = "type", constant = "LECTURE")
+    @Mapping(source = "contentItem.id", target = "contentItemId")
     @Mapping(source = "contentItem.topic.id", target = "topicId")
     @Mapping(source = "contentItem.topic.title", target = "topicTitle")
     @Mapping(source = "contentItem.title", target = "title")

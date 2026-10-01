@@ -1,6 +1,7 @@
 package com.montola.school.course.model.contents;
 
 import com.montola.school.common.model.Persistent;
+import com.montola.school.course.enums.StorageProvider;
 import com.montola.school.course.model.ContentItem;
 import com.montola.school.course.model.Topic;
 import jakarta.persistence.*;
@@ -26,9 +27,17 @@ public class Lecture extends Persistent {
     @JoinColumn(name = "content_item_id", nullable = false)
     private ContentItem contentItem;
 
-    @Column(length = 50)
+    /**
+     * A YouTube video id for GOOGLE_DRIVE lectures, or an object-storage key for
+     * AWS_S3 ones.
+     */
+    @Column(length = 500)
     private String videoId;
 
     @Column(columnDefinition = "TEXT")
     private String content;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "storage_provider", length = 30)
+    private StorageProvider storageProvider = StorageProvider.GOOGLE_DRIVE;
 }

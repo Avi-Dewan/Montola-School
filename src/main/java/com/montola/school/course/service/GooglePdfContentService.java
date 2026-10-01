@@ -72,6 +72,15 @@ public interface GooglePdfContentService {
     byte[] getFileBytes(Long contentItemId);
 
     /**
+     * Stores an uploaded file in application object storage and points the content
+     * item at it, moving the document off external hosting.
+     *
+     * @param contentItemId the content item ID
+     * @return the updated content
+     */
+    GooglePdfContentResponseDto uploadFile(Long contentItemId, byte[] content, String filename, String contentType);
+
+    /**
      * Updates an existing Google PDF content by its associated content item ID.
      *
      * @param contentItemId the content item ID
