@@ -160,6 +160,8 @@ You can also run Gradle tasks directly:
 | `AWS_S3_PREFIX` | Key prefix for uploaded objects | `shop/` | All (s3) |
 | `STORAGE_URL_TTL_SECONDS` | Presigned download URL lifetime | `300` | All (s3) |
 | `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` | AWS credentials (prefer an instance/task role in prod) | — | All (s3) |
+| `MAX_UPLOAD_FILE_SIZE` | Largest single uploaded file | `25MB` | All |
+| `MAX_UPLOAD_REQUEST_SIZE` | Largest whole multipart request | `30MB` | All |
 
 ### Dev vs Prod
 

@@ -22,6 +22,12 @@ spring:
   resend:
     api-key: ${RESEND_API_KEY}
 
+  servlet:
+    multipart:
+      # Spring's default is 1MB, which would reject real PDFs and video files.
+      max-file-size: ${MAX_UPLOAD_FILE_SIZE:25MB}
+      max-request-size: ${MAX_UPLOAD_REQUEST_SIZE:30MB}
+
 app:
   frontend-url: ${FRONTEND_URL:http://localhost:3000}
   storage:
