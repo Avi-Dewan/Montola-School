@@ -7,12 +7,14 @@ import org.springframework.stereotype.Service;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 
+import java.net.URI;
 import java.time.Duration;
 import java.util.UUID;
 
@@ -40,8 +42,19 @@ public class S3FileStorageService implements FileStorageService {
         this.properties = properties;
 
         Region region = Region.of(properties.getS3().getRegion());
-        this.s3Client = S3Client.builder().region(region).build();
-        this.presigner = S3Presigner.builder().region(region).build();
+        S3ClientBuilder clientBuilder = S3Client.builder().region(region);
+        S3Presigner.Builder presignerBuilder = S3Presigner.builder().region(region);
+
+        String endpoint = properties.getS3().getEndpoint();
+        if (endpoint != null && !endpoint.isBlank()) {
+            URI uri = URI.create(endpoint);
+            // The presigned URL must be signed for the same endpoint it will be used against.
+            clientBuilder.endpointOverride(uri).forcePathStyle(properties.getS3().isPathStyle());
+            presignerBuilder.endpointOverride(uri);
+        }
+
+        this.s3Client = clientBuilder.build();
+        this.presigner = presignerBuilder.build();
     }
 
     @Override

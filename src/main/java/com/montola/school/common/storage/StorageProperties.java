@@ -28,6 +28,18 @@ public class StorageProperties {
     @Getter
     @Setter
     public static class S3 {
+        /**
+         * Custom endpoint for an S3-compatible provider such as Cloudflare R2.
+         * Blank means the real AWS S3 endpoints are used.
+         */
+        private String endpoint;
+
+        /**
+         * Path-style addressing ({@code endpoint/bucket/key}); most S3-compatible
+         * providers need this, real AWS prefers virtual-hosted style.
+         */
+        private boolean pathStyle = true;
+
         private String bucket;
         private String region = "ap-south-1";
         private long urlTtlSeconds = 300;

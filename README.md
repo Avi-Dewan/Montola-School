@@ -67,15 +67,25 @@ RESEND_API_KEY=re_xxxxxxxxxxxx
 # Frontend URL (for CORS and email links)
 FRONTEND_URL=http://localhost:3000
 
-# Shop product files (optional)
+# Private file storage (optional)
 # "external" (default) keeps a supplied reference such as a Google Drive file id
-# and needs no AWS credentials. Use "s3" to serve shop PDFs from a private bucket.
+# and needs no cloud credentials. Use "s3" to serve private PDFs/videos from a bucket.
 STORAGE_PROVIDER=external
-AWS_REGION=ap-south-1
 AWS_S3_BUCKET=montola-shop-files
 AWS_S3_PREFIX=shop/
 STORAGE_URL_TTL_SECONDS=300
-# For "s3", credentials come from the standard AWS chain (env vars below, or an
+
+# Real AWS S3 (leave AWS_S3_ENDPOINT blank)
+AWS_REGION=ap-south-1
+# AWS_S3_ENDPOINT=
+
+# Cloudflare R2 (S3-compatible; free tier = 10 GB storage + zero egress).
+# Set the endpoint to your account URL and the region to "auto".
+# AWS_S3_ENDPOINT=https://<account-id>.r2.cloudflarestorage.com
+# AWS_REGION=auto
+# AWS_S3_PATH_STYLE=true
+
+# Credentials come from the standard AWS chain (env vars below, or an
 # instance/task role in production). Never commit real keys.
 # AWS_ACCESS_KEY_ID=
 # AWS_SECRET_ACCESS_KEY=
@@ -142,9 +152,11 @@ You can also run Gradle tasks directly:
 | `SECURITY_JWT_EXPIRATION_MINUTES` | Access token expiry in minutes | `60` | All |
 | `RESEND_API_KEY` | Resend email service API key | — | All |
 | `FRONTEND_URL` | Frontend URL for CORS & email links | `http://localhost:3000` | All |
-| `STORAGE_PROVIDER` | Shop file storage: `external` or `s3` | `external` | All |
-| `AWS_S3_BUCKET` | Private S3 bucket for shop product files | — | All (s3) |
-| `AWS_REGION` | AWS region for the bucket | `ap-south-1` | All (s3) |
+| `STORAGE_PROVIDER` | File storage backend: `external` or `s3` | `external` | All |
+| `AWS_S3_ENDPOINT` | S3-compatible endpoint (blank = AWS S3; set for R2/MinIO) | — | All (s3) |
+| `AWS_S3_PATH_STYLE` | Path-style bucket addressing | `true` | All (s3) |
+| `AWS_S3_BUCKET` | Private bucket for product/content files | — | All (s3) |
+| `AWS_REGION` | Region for the bucket (`auto` for R2) | `ap-south-1` | All (s3) |
 | `AWS_S3_PREFIX` | Key prefix for uploaded objects | `shop/` | All (s3) |
 | `STORAGE_URL_TTL_SECONDS` | Presigned download URL lifetime | `300` | All (s3) |
 | `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` | AWS credentials (prefer an instance/task role in prod) | — | All (s3) |

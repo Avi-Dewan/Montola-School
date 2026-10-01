@@ -26,9 +26,14 @@ app:
   frontend-url: ${FRONTEND_URL:http://localhost:3000}
   storage:
     # external = keep the stored reference as-is (e.g. a Google Drive id).
-    # s3       = serve shop product files from a private S3 bucket via presigned URLs.
+    # s3       = serve private files through presigned URLs (AWS S3 or any
+    #            S3-compatible provider such as Cloudflare R2).
     provider: ${STORAGE_PROVIDER:external}
     s3:
+      # Blank = real AWS S3. For R2 use
+      # https://<account-id>.r2.cloudflarestorage.com with region "auto".
+      endpoint: ${AWS_S3_ENDPOINT:}
+      path-style: ${AWS_S3_PATH_STYLE:true}
       bucket: ${AWS_S3_BUCKET:}
       region: ${AWS_REGION:ap-south-1}
       url-ttl-seconds: ${STORAGE_URL_TTL_SECONDS:300}
