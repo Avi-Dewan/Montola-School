@@ -43,3 +43,12 @@ management:
   endpoint:
     health:
       show-details: never
+  health:
+    # Health checks must NOT query the database. Neon's free tier scales to zero
+    # after 5 minutes of inactivity and the timer is reset by any query, so a
+    # 5-minute uptime ping against a db-backed health check keeps the database
+    # awake 24/7 and burns the whole monthly compute allowance.
+    # Database connectivity is still proven by Flyway/Hibernate at startup and by
+    # every real request.
+    db:
+      enabled: false
