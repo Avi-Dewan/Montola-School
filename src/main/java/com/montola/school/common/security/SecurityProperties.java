@@ -38,6 +38,18 @@ public class SecurityProperties {
             new WhitelistRule("/api/v1/chapters/public/free", "GET"),
             new WhitelistRule("/api/v1/chapters/*/public", "GET"),
             new WhitelistRule("/api/v1/featured-chapters", "GET"),
+            // Shop catalog (product detail can still read an optional token for entitlement flags)
+            new WhitelistRule("/api/v1/shop/levels", "GET"),
+            new WhitelistRule("/api/v1/shop/classes", "GET"),
+            new WhitelistRule("/api/v1/shop/products", "GET"),
+            new WhitelistRule("/api/v1/shop/products/*", "GET"),
+            new WhitelistRule("/api/v1/shop/featured", "GET"),
+            new WhitelistRule("/api/v1/shop/bundles", "GET"),
+            new WhitelistRule("/api/v1/shop/bundles/*", "GET"),
+            // Academic Care enquiry form (submitted by parents, no account required)
+            new WhitelistRule("/api/v1/care/leads", "POST"),
+            // Homepage notices
+            new WhitelistRule("/api/v1/notices", "GET"),
             new WhitelistRule("/v3/api-docs/**", "GET"),
             new WhitelistRule("/swagger-ui/**", "GET"),
             new WhitelistRule("/swagger-ui.html", "GET")

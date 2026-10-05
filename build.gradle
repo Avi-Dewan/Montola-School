@@ -54,6 +54,10 @@ dependencies {
     implementation 'org.mapstruct:mapstruct:1.5.5.Final'
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
 
+    // AWS SDK v2 - S3 object storage for shop product files
+    implementation platform('software.amazon.awssdk:bom:2.28.16')
+    implementation 'software.amazon.awssdk:s3'
+
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
 

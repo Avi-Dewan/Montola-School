@@ -5,8 +5,14 @@ spring:
     password: ${POSTGRES_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
   
+  # Dev now runs the same migrations as prod so the schemas cannot drift.
+  # An existing dev database (created before Flyway was enabled here) is baselined
+  # at V12, so only V13+ are applied to it; a fresh database gets the full V1..Vn run.
   flyway:
-    enabled: false
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    baseline-version: 12
 
   jpa:
     hibernate:

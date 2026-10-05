@@ -133,6 +133,9 @@ graph TD
 | `course` | Course content management — classes, subjects, chapters, topics, content items (lectures/quizzes/PDFs), teacher assignments, featured chapters |
 | `learner` | Student enrollment and progress tracking |
 | `payment` | Payment submission, verification, and free enrollment |
+| `shop` | Shop catalog (products, bundles), entitlements, shop payments, admin management |
+| `care` | Academic Care enquiry lead capture and follow-up |
+| `notice` | Homepage notices |
 
 ---
 
@@ -398,7 +401,7 @@ Payment methods: **bKash** and **Nagad** (Bangladeshi mobile payment services). 
 | Provider | Docker PostgreSQL 16 | Neon (cloud PostgreSQL) |
 | Connection | `localhost:5432/montola` | `DB_URL` with SSL |
 | Schema Management | Hibernate `validate` | Flyway migrations |
-| Flyway | Disabled | Enabled |
+| Flyway | Enabled (baselined at V12 for pre-existing DBs) | Enabled |
 | Pool | Default | HikariCP (max 5) |
 
 ### Flyway Migrations
@@ -422,6 +425,18 @@ db/migration/
 │   └── V11__featured_chapters.sql
 └── 2026.3.1/              # V12: Schema refinement
     └── V12__add_primary_keys.sql
+```
+
+The shop/care/notice modules add a fourth folder:
+
+```
+db/migration/2026.4.1/
+├── V13__levels.sql                          # Levels (JSC/SSC/HSC) + classes.level_id
+├── V14__shop_products.sql                   # Shop products
+├── V15__shop_bundles.sql                    # Bundles + bundle_products join
+├── V16__shop_entitlements_and_payments.sql  # Entitlements + shop payments
+├── V17__care_leads.sql                      # Academic Care leads
+└── V18__notices.sql                         # Notices
 ```
 
 ---
@@ -462,5 +477,6 @@ Custom exceptions: `ResourceNotFoundException`, `ResourceAlreadyExistsException`
 |---------|---------|---------|
 | **Resend** | `resend-java:2.0.0` | Transactional emails (activation, password reset, purchase confirmation) |
 | **Google Drive** | URL reference only | PDF content storage (fileId stored, rendered via Google Docs viewer) |
+| **AWS S3** | `software.amazon.awssdk:s3` | Shop product files. Private bucket, short-lived presigned URLs, behind `FileStorageService`. Optional — the default `external` provider keeps a supplied reference instead. |
 
 Emails are sent from `Montola School <noreply@montolaschool.com>` with HTML templates embedded in `BusinessEmailService`.
