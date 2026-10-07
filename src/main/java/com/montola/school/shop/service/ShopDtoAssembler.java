@@ -7,6 +7,7 @@ import com.montola.school.shop.dto.ShopClassDto;
 import com.montola.school.shop.dto.ShopLevelDto;
 import com.montola.school.shop.dto.ShopPaymentDto;
 import com.montola.school.shop.dto.ShopProductCardDto;
+import com.montola.school.shop.dto.ShopProductCardView;
 import com.montola.school.shop.enums.ShopProductType;
 import com.montola.school.shop.model.ShopBundle;
 import com.montola.school.shop.model.ShopPayment;
@@ -76,6 +77,35 @@ public class ShopDtoAssembler {
     public ShopProductCardDto toCard(ShopProduct product) {
         ShopProductCardDto dto = new ShopProductCardDto();
         fillCard(dto, product);
+
+        return dto;
+    }
+
+    /**
+     * Card from the list projection. Same fields as the entity overload — the
+     * projection simply never carries the large content columns.
+     */
+    public ShopProductCardDto toCard(ShopProductCardView view) {
+        ShopProductCardDto dto = new ShopProductCardDto();
+        dto.setId(view.id());
+        dto.setTitle(view.title());
+        dto.setDescription(view.description());
+        dto.setType(view.type());
+        dto.setFormat(view.format());
+        dto.setPrice(view.price());
+        dto.setStatus(view.status() != null ? view.status().name() : null);
+        dto.setFeatured(view.featured());
+        dto.setPreview(view.preview());
+        dto.setDownloadable(ShopProductType.isDownloadable(view.type()));
+
+        dto.setLevelId(view.levelId());
+        dto.setLevelName(view.levelName());
+        dto.setClassId(view.classId());
+        dto.setClassName(view.className());
+        dto.setSubjectId(view.subjectId());
+        dto.setSubjectName(view.subjectName());
+        dto.setChapterId(view.chapterId());
+        dto.setChapterTitle(view.chapterTitle());
 
         return dto;
     }

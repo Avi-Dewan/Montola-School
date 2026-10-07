@@ -49,7 +49,7 @@ public class ShopAdminServiceImpl implements ShopAdminService {
     @Override
     @Transactional(readOnly = true)
     public List<ShopProductCardDto> getAllProducts() {
-        return productRepository.findByIsDeletedFalseOrderByIdAsc().stream()
+        return productRepository.findAllCards().stream()
                 .map(assembler::toCard)
                 .toList();
     }
