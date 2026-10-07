@@ -22,6 +22,13 @@ spring:
   resend:
     api-key: ${RESEND_API_KEY}
 
+  servlet:
+    multipart:
+      # Spring's default is 1MB, which would reject any real product PDF. Without
+      # this, an upload fails with 413 before it ever reaches the storage layer.
+      max-file-size: ${MAX_UPLOAD_FILE_SIZE:25MB}
+      max-request-size: ${MAX_UPLOAD_REQUEST_SIZE:30MB}
+
 app:
   frontend-url: ${FRONTEND_URL:http://localhost:3000}
   storage:
