@@ -20,3 +20,12 @@ spring:
 
 app:
   frontend-url: http://localhost:3000
+
+  # Development-only demo data. Runs on startup when the dev profile is active and
+  # the database has not been seeded yet. Never active on a deployed instance —
+  # that runs the prod profile (see the Dockerfile), and this class is @Profile("dev").
+  dev:
+    seed: true
+    # Password for every seeded account. Local development only: this file is in a
+    # public repository, and these accounts only ever exist in a local database.
+    seed-password: ${DEV_SEED_PASSWORD:Montola098#}
