@@ -2,11 +2,13 @@ package com.montola.school.shop.service;
 
 import com.montola.school.course.model.ClassEntity;
 import com.montola.school.course.model.Level;
+import com.montola.school.shop.dto.ShopAdminProductDto;
 import com.montola.school.shop.dto.ShopBundleDto;
 import com.montola.school.shop.dto.ShopClassDto;
 import com.montola.school.shop.dto.ShopLevelDto;
 import com.montola.school.shop.dto.ShopPaymentDto;
 import com.montola.school.shop.dto.ShopProductCardDto;
+import com.montola.school.shop.dto.ShopProductCardView;
 import com.montola.school.shop.enums.ShopProductType;
 import com.montola.school.shop.model.ShopBundle;
 import com.montola.school.shop.model.ShopPayment;
@@ -59,6 +61,7 @@ public class ShopDtoAssembler {
         dto.setFeatured(product.isFeatured());
         dto.setPreview(product.getPreview());
         dto.setDownloadable(ShopProductType.isDownloadable(product.getType()));
+        dto.setFileAttached(product.getFileKey() != null && !product.getFileKey().isBlank());
 
         dto.setLevelId(product.getLevel() != null ? product.getLevel().getId() : null);
         dto.setLevelName(product.getLevel() != null ? product.getLevel().getName() : null);
@@ -76,6 +79,52 @@ public class ShopDtoAssembler {
     public ShopProductCardDto toCard(ShopProduct product) {
         ShopProductCardDto dto = new ShopProductCardDto();
         fillCard(dto, product);
+
+        return dto;
+    }
+
+    /**
+     * Card fields from the list projection. Mirrors the entity overload — the
+     * projection simply never carries the large content columns.
+     */
+    public void fillCard(ShopProductCardDto dto, ShopProductCardView view) {
+        dto.setId(view.id());
+        dto.setTitle(view.title());
+        dto.setDescription(view.description());
+        dto.setType(view.type());
+        dto.setFormat(view.format());
+        dto.setPrice(view.price());
+        dto.setStatus(view.status() != null ? view.status().name() : null);
+        dto.setFeatured(view.featured());
+        dto.setPreview(view.preview());
+        dto.setDownloadable(ShopProductType.isDownloadable(view.type()));
+        dto.setFileAttached(view.fileKey() != null && !view.fileKey().isBlank());
+
+        dto.setLevelId(view.levelId());
+        dto.setLevelName(view.levelName());
+        dto.setClassId(view.classId());
+        dto.setClassName(view.className());
+        dto.setSubjectId(view.subjectId());
+        dto.setSubjectName(view.subjectName());
+        dto.setChapterId(view.chapterId());
+        dto.setChapterTitle(view.chapterTitle());
+    }
+
+    public ShopProductCardDto toCard(ShopProductCardView view) {
+        ShopProductCardDto dto = new ShopProductCardDto();
+        fillCard(dto, view);
+
+        return dto;
+    }
+
+    /**
+     * Admin card: the plain card plus the file reference, for display in the edit
+     * form. Never returned by a public endpoint.
+     */
+    public ShopAdminProductDto toAdminCard(ShopProductCardView view) {
+        ShopAdminProductDto dto = new ShopAdminProductDto();
+        fillCard(dto, view);
+        dto.setFileId(view.fileKey());
 
         return dto;
     }

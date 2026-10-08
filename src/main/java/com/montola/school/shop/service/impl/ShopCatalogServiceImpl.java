@@ -68,20 +68,20 @@ public class ShopCatalogServiceImpl implements ShopCatalogService {
                                                 Long subjectId,
                                                 Long chapterId) {
 
-        return productRepository.findByIsDeletedFalseAndStatusOrderByIdAsc(ShopItemStatus.PUBLISHED).stream()
-                .filter(p -> type == null || p.getType() == type)
-                .filter(p -> format == null || p.getFormat() == format)
-                .filter(p -> levelId == null || (p.getLevel() != null && levelId.equals(p.getLevel().getId())))
-                .filter(p -> classId == null || (p.getClassEntity() != null && classId.equals(p.getClassEntity().getId())))
-                .filter(p -> subjectId == null || (p.getSubject() != null && subjectId.equals(p.getSubject().getId())))
-                .filter(p -> chapterId == null || (p.getChapter() != null && chapterId.equals(p.getChapter().getId())))
+        return productRepository.findCardsByStatus(ShopItemStatus.PUBLISHED).stream()
+                .filter(p -> type == null || p.type() == type)
+                .filter(p -> format == null || p.format() == format)
+                .filter(p -> levelId == null || levelId.equals(p.levelId()))
+                .filter(p -> classId == null || classId.equals(p.classId()))
+                .filter(p -> subjectId == null || subjectId.equals(p.subjectId()))
+                .filter(p -> chapterId == null || chapterId.equals(p.chapterId()))
                 .map(assembler::toCard)
                 .toList();
     }
 
     @Override
     public List<ShopProductCardDto> getFeaturedProducts() {
-        return productRepository.findByIsDeletedFalseAndFeaturedTrueAndStatusOrderByIdAsc(ShopItemStatus.PUBLISHED).stream()
+        return productRepository.findFeaturedCards(ShopItemStatus.PUBLISHED).stream()
                 .map(assembler::toCard)
                 .toList();
     }

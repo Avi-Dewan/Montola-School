@@ -25,4 +25,11 @@ public class ShopProductContentDto {
     private String html;
     private String fileId;
     private Integer pageCount;
+
+    /**
+     * Short-lived URL for reading an attached file in place. Entitlement-gated
+     * like the rest of this payload — viewing is not the same as downloading,
+     * which stays restricted to staff and DOWNLOAD-mode bundles.
+     */
+    private String viewUrl;
 }

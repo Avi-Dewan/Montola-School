@@ -1,5 +1,6 @@
 package com.montola.school.shop.service;
 
+import com.montola.school.shop.dto.ShopAdminProductDto;
 import com.montola.school.shop.dto.ShopBundleDto;
 import com.montola.school.shop.dto.ShopBundleRequestDto;
 import com.montola.school.shop.dto.ShopProductCardDto;
@@ -15,7 +16,7 @@ import java.util.List;
  */
 public interface ShopAdminService {
 
-    List<ShopProductCardDto> getAllProducts();
+    List<ShopAdminProductDto> getAllProducts();
 
     ShopProductCardDto createProduct(ShopProductRequestDto request);
 

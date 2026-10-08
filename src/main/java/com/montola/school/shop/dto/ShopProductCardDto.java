@@ -31,6 +31,11 @@ public class ShopProductCardDto {
     private boolean featured;
     private String preview;
     private boolean downloadable;
+    /**
+     * Whether a file is attached. The reference itself is never exposed here:
+     * this DTO is served by public catalog endpoints.
+     */
+    private boolean fileAttached;
     private Long levelId;
     private String levelName;
     private Long classId;
