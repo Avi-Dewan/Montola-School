@@ -6,6 +6,7 @@ import com.montola.school.course.repository.ChapterRepository;
 import com.montola.school.course.repository.ClassRepository;
 import com.montola.school.course.repository.LevelRepository;
 import com.montola.school.course.repository.SubjectRepository;
+import com.montola.school.shop.dto.ShopAdminProductDto;
 import com.montola.school.shop.dto.ShopBundleDto;
 import com.montola.school.shop.dto.ShopBundleRequestDto;
 import com.montola.school.shop.dto.ShopProductCardDto;
@@ -48,9 +49,9 @@ public class ShopAdminServiceImpl implements ShopAdminService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<ShopProductCardDto> getAllProducts() {
+    public List<ShopAdminProductDto> getAllProducts() {
         return productRepository.findAllCards().stream()
-                .map(assembler::toCard)
+                .map(assembler::toAdminCard)
                 .toList();
     }
 

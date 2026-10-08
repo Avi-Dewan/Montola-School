@@ -2,6 +2,7 @@ package com.montola.school.shop.service;
 
 import com.montola.school.course.model.ClassEntity;
 import com.montola.school.course.model.Level;
+import com.montola.school.shop.dto.ShopAdminProductDto;
 import com.montola.school.shop.dto.ShopBundleDto;
 import com.montola.school.shop.dto.ShopClassDto;
 import com.montola.school.shop.dto.ShopLevelDto;
@@ -83,11 +84,10 @@ public class ShopDtoAssembler {
     }
 
     /**
-     * Card from the list projection. Same fields as the entity overload — the
+     * Card fields from the list projection. Mirrors the entity overload — the
      * projection simply never carries the large content columns.
      */
-    public ShopProductCardDto toCard(ShopProductCardView view) {
-        ShopProductCardDto dto = new ShopProductCardDto();
+    public void fillCard(ShopProductCardDto dto, ShopProductCardView view) {
         dto.setId(view.id());
         dto.setTitle(view.title());
         dto.setDescription(view.description());
@@ -108,6 +108,23 @@ public class ShopDtoAssembler {
         dto.setSubjectName(view.subjectName());
         dto.setChapterId(view.chapterId());
         dto.setChapterTitle(view.chapterTitle());
+    }
+
+    public ShopProductCardDto toCard(ShopProductCardView view) {
+        ShopProductCardDto dto = new ShopProductCardDto();
+        fillCard(dto, view);
+
+        return dto;
+    }
+
+    /**
+     * Admin card: the plain card plus the file reference, for display in the edit
+     * form. Never returned by a public endpoint.
+     */
+    public ShopAdminProductDto toAdminCard(ShopProductCardView view) {
+        ShopAdminProductDto dto = new ShopAdminProductDto();
+        fillCard(dto, view);
+        dto.setFileId(view.fileKey());
 
         return dto;
     }

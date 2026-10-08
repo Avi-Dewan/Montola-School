@@ -1,6 +1,7 @@
 package com.montola.school.shop.controller;
 
 import com.montola.school.auth.security.CustomUserDetails;
+import com.montola.school.shop.dto.ShopAdminProductDto;
 import com.montola.school.shop.dto.ShopBundleDto;
 import com.montola.school.shop.dto.ShopBundleRequestDto;
 import com.montola.school.shop.dto.ShopPaymentDto;
@@ -70,7 +71,7 @@ public class ShopAdminController {
 
     @Operation(summary = "All products, including drafts")
     @GetMapping("/admin/products")
-    public ResponseEntity<List<ShopProductCardDto>> getAllProducts() {
+    public ResponseEntity<List<ShopAdminProductDto>> getAllProducts() {
         return ResponseEntity.ok(adminService.getAllProducts());
     }
 
