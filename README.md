@@ -105,14 +105,47 @@ Open **http://localhost:8080/swagger-ui.html** for interactive API documentation
 
 ## Run Scripts
 
-The project provides **3 shell scripts** for different environments, plus a database script:
+The project provides these shell scripts:
 
 | Script | What It Does | When to Use |
 |--------|-------------|-------------|
 | `dev-db.sh` | Starts PostgreSQL 16 via Docker Compose using `.env` | **First step** — get the database running |
+| `dev-db-reset.sh` | **Deletes** the local Postgres volume and recreates it empty. Refuses to run without `--yes` | **Start from scratch** — wipe local data and reseed |
 | `dev-run.sh` | Sets `SPRING_PROFILES_ACTIVE=dev`, sources `.env`, builds and runs via `./gradlew bootRun` | **Daily development** — local app against local DB |
 | `docker-run.sh` | Builds a Docker image of the app and runs it as a container on the `montola-school_default` network | **Testing Docker deployment** — app + DB both in containers |
 | `prod-run-local.sh` | Sets `SPRING_PROFILES_ACTIVE=prod`, sources `.env.prod`, runs via `./gradlew bootRun` | **Testing prod config** — local app against Neon (cloud) DB |
+
+### Starting from scratch
+
+To throw away local data and get a working database back:
+
+```bash
+./dev-db-reset.sh --yes    # destroys the volume, recreates Postgres empty
+./dev-run.sh               # Flyway migrates from V1, then the dev seeder populates demo data
+```
+
+There is no way to create the first user through the API — registration always assigns `STUDENT`,
+and admin registration requires an existing `ADMIN`. The **dev seeder** exists to break that
+deadlock and give every screen something to show.
+
+### Seeded development accounts
+
+The dev profile seeds these on startup, but only when the database has not been seeded yet. All
+three share the password `Montola098#`:
+
+| Email | Role |
+|-------|------|
+| `admin@montola.local` | `ADMIN` |
+| `teacher@montola.local` | `TEACHER` |
+| `student@montola.local` | `STUDENT` |
+
+> These are **local development credentials only**. This repository is public, so the password is
+> public — never reuse it for a deployed environment, and never expect these accounts to exist
+> anywhere but your own machine. Override with `DEV_SEED_PASSWORD` if you want something else.
+
+The seed also creates JSC/SSC/HSC levels (already present from migration V13), Class 6/7/8,
+three subjects, one free published chapter with a lecture and a quiz, one interactive shop product,
+and one notice. Set `app.dev.seed=false` to skip it.
 
 ### Gradle Commands
 

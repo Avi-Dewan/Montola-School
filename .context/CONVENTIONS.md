@@ -398,7 +398,7 @@ notice.notfound=Notice not found
 | File | Purpose |
 |------|---------|
 | `application.yml` | Main config (port, JPA, JWT, email, actuator) |
-| `application-dev.yml` | Dev overrides (local DB, flyway off) |
+| `application-dev.yml` | Dev overrides (local DB, Flyway on, dev seeder settings) |
 | `application-prod.yml` | Prod overrides (Neon DB with SSL, flyway on) |
 | `messages.properties` | i18n error message keys |
 | `SecurityConfig.java` | CORS, CSRF, filter chain, role configuration |
@@ -414,3 +414,34 @@ notice.notfound=Notice not found
 - No test files exist yet (`src/test/` directory is absent)
 - Docker build skips tests (`-x test`)
 - TODO: Add unit tests for services and integration tests for controllers
+
+---
+
+## Development Data
+
+A freshly migrated database is empty, and there is no way to create the first user through the API —
+`POST /api/auth/register` always assigns `STUDENT`, and `POST /api/auth/admin/register` requires an
+existing `ADMIN`. Local development therefore depends on `DevDataSeeder`
+(`com.montola.school.dev`), an `ApplicationRunner` that creates three accounts and a small demo
+dataset.
+
+**It is gated three independent ways**, and any one of them is sufficient:
+
+1. `@Profile("dev")` — a deployed instance runs the `prod` profile (see the `Dockerfile`).
+2. `app.dev.seed=true` — set in `application-dev.yml`, overridable.
+3. An idempotency check — it returns immediately if the seeded admin already exists.
+
+**When adding an entity that should be seeded, add it to `DevDataSeeder`** and seed through the
+service rather than the repository where one exists, so the seed exercises the same code the admin
+UI does.
+
+Two things worth knowing before changing it:
+
+- **Levels are not created by the seeder.** Migration `V13__levels.sql` inserts JSC/SSC/HSC, and
+  `levels.name` is unique — the seeder looks them up instead.
+- **Chapter creation needs an authenticated user.** `ChapterServiceImpl` records `createdBy` from the
+  security context, so the seeder establishes one for the admin it just created and clears it
+  afterwards. Any future seeding of authored content needs the same treatment.
+
+To start over: `./dev-db-reset.sh --yes` then `./dev-run.sh`. See the README for the seeded
+credentials.
