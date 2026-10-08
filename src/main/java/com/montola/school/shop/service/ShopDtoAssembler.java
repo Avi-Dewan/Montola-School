@@ -60,6 +60,7 @@ public class ShopDtoAssembler {
         dto.setFeatured(product.isFeatured());
         dto.setPreview(product.getPreview());
         dto.setDownloadable(ShopProductType.isDownloadable(product.getType()));
+        dto.setFileAttached(product.getFileKey() != null && !product.getFileKey().isBlank());
 
         dto.setLevelId(product.getLevel() != null ? product.getLevel().getId() : null);
         dto.setLevelName(product.getLevel() != null ? product.getLevel().getName() : null);
@@ -97,6 +98,7 @@ public class ShopDtoAssembler {
         dto.setFeatured(view.featured());
         dto.setPreview(view.preview());
         dto.setDownloadable(ShopProductType.isDownloadable(view.type()));
+        dto.setFileAttached(view.fileKey() != null && !view.fileKey().isBlank());
 
         dto.setLevelId(view.levelId());
         dto.setLevelName(view.levelName());

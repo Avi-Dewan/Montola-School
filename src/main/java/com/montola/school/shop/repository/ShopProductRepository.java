@@ -30,7 +30,7 @@ public interface ShopProductRepository extends JpaRepository<ShopProduct, Long> 
             select new com.montola.school.shop.dto.ShopProductCardView(
                 p.id, p.title, p.description, p.type, p.format, p.price, p.status,
                 p.featured, p.preview,
-                l.id, l.name, c.id, c.name, s.id, s.name, ch.id, ch.title)
+                l.id, l.name, c.id, c.name, s.id, s.name, ch.id, ch.title, p.fileKey)
             from ShopProduct p
             left join p.level l
             left join p.classEntity c
@@ -45,7 +45,7 @@ public interface ShopProductRepository extends JpaRepository<ShopProduct, Long> 
             select new com.montola.school.shop.dto.ShopProductCardView(
                 p.id, p.title, p.description, p.type, p.format, p.price, p.status,
                 p.featured, p.preview,
-                l.id, l.name, c.id, c.name, s.id, s.name, ch.id, ch.title)
+                l.id, l.name, c.id, c.name, s.id, s.name, ch.id, ch.title, p.fileKey)
             from ShopProduct p
             left join p.level l
             left join p.classEntity c
@@ -60,7 +60,7 @@ public interface ShopProductRepository extends JpaRepository<ShopProduct, Long> 
             select new com.montola.school.shop.dto.ShopProductCardView(
                 p.id, p.title, p.description, p.type, p.format, p.price, p.status,
                 p.featured, p.preview,
-                l.id, l.name, c.id, c.name, s.id, s.name, ch.id, ch.title)
+                l.id, l.name, c.id, c.name, s.id, s.name, ch.id, ch.title, p.fileKey)
             from ShopProduct p
             left join p.level l
             left join p.classEntity c

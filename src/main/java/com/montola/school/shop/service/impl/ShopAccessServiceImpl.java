@@ -112,7 +112,27 @@ public class ShopAccessServiceImpl implements ShopAccessService {
                 .html(product.getContentHtml())
                 .fileId(product.getFileKey())
                 .pageCount(product.getPageCount())
+                .viewUrl(viewUrl(product))
                 .build();
+    }
+
+    /**
+     * A short-lived URL the buyer can open to read the file in place.
+     * <p>
+     * Gated on entitlement only. Downloading is a separate, narrower permission,
+     * so an ordinary buyer previously had no way to reach an attached PDF at all —
+     * the content payload carried the storage key, which is not something a browser
+     * can open.
+     * </p>
+     */
+    private String viewUrl(ShopProduct product) {
+        if (product.getFileKey() == null || product.getFileKey().isBlank()) {
+            return null;
+        }
+
+        long ttlSeconds = storageProperties.getS3().getUrlTtlSeconds();
+
+        return fileStorageService.url(product.getFileKey(), Duration.ofSeconds(ttlSeconds));
     }
 
     @Override

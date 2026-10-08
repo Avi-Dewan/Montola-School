@@ -37,6 +37,9 @@ public record ShopProductCardView(
         String subjectName,
 
         Long chapterId,
-        String chapterTitle
+        String chapterTitle,
+
+        /** Kept only so the card can report whether a file is attached. */
+        String fileKey
 ) {
 }
